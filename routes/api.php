@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\DailyTripController;
+use App\Http\Controllers\DriversMaintenanceController;
 
 Route::get('/test', function () {
     return response()->json([
@@ -18,6 +19,14 @@ Route::get('/test', function () {
 // Authentication routes
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);
+
+// Temporarily unprotected drivers maintenance routes for testing
+Route::get('/drivers-maintenance', [DriversMaintenanceController::class, 'index']);
+Route::post('/drivers-maintenance', [DriversMaintenanceController::class, 'store']);
+Route::get('/drivers-maintenance/{id}', [DriversMaintenanceController::class, 'show']);
+Route::put('/drivers-maintenance/{id}', [DriversMaintenanceController::class, 'update']);
+Route::delete('/drivers-maintenance/{id}', [DriversMaintenanceController::class, 'destroy']);
+Route::get('/drivers-maintenance-vehicles', [DriversMaintenanceController::class, 'getVehicles']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {

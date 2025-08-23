@@ -71,4 +71,12 @@ class Vehicle extends Model
     {
         return $this->hasMany(DailyTrip::class, 'plate_number', 'plate_number');
     }
+
+    /**
+     * Get the drivers maintenance records for this vehicle.
+     */
+    public function driversMaintenances(): HasMany
+    {
+        return $this->hasMany(DriversMaintenance::class, 'plate_number', 'plate_number');
+    }
 }
