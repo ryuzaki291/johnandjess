@@ -8,10 +8,15 @@ interface Vehicle {
     vehicle_brand: string | null;
     vehicle_status: string | null;
     add_date_in_company: string | null;
-    creator: string | null;
+    creator: number | null;
     creation_date: string | null;
     created_at: string;
     updated_at: string;
+    created_by?: {
+        id: number;
+        name: string;
+        email: string;
+    } | null;
 }
 
 interface VehicleFormData {
@@ -359,7 +364,7 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
                                 <p><span className="font-medium">Brand:</span> {vehicle.vehicle_brand || 'N/A'}</p>
                                 <p><span className="font-medium">Owner:</span> {vehicle.vehicle_owner || 'N/A'}</p>
                                 <p><span className="font-medium">Added:</span> {formatDate(vehicle.add_date_in_company)}</p>
-                                <p><span className="font-medium">Creator:</span> {vehicle.creator || 'N/A'}</p>
+                                <p><span className="font-medium">Creator:</span> {vehicle.created_by?.name || 'N/A'}</p>
                             </div>
                             <div className="flex space-x-2 pt-2">
                                 <button 
@@ -441,7 +446,7 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
                                         {formatDate(vehicle.add_date_in_company)}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {vehicle.creator || 'N/A'}
+                                        {vehicle.created_by?.name || 'N/A'}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <button 

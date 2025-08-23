@@ -19,8 +19,8 @@ return new class extends Migration
             $table->string('vehicle_brand')->nullable();
             $table->string('vehicle_status')->nullable();
             $table->date('add_date_in_company')->nullable();
-            $table->string('creator')->nullable();
-            $table->foreign('creator')->references('name')->on('users')->onDelete('set null');
+            $table->unsignedBigInteger('creator')->nullable();
+            $table->foreign('creator')->references('id')->on('users')->onDelete('set null');
             $table->date('creation_date')->nullable();
             $table->timestamps();
         });

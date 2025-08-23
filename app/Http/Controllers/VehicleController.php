@@ -64,7 +64,7 @@ class VehicleController extends Controller
                 'vehicle_brand' => $request->vehicle_brand,
                 'vehicle_status' => $request->vehicle_status ?? 'active',
                 'add_date_in_company' => $request->add_date_in_company,
-                'creator' => $request->user()->name, // Get creator from authenticated user
+                'creator' => $request->user()->id, // Get creator ID from authenticated user
                 'creation_date' => $request->creation_date ?? now()->toDateString(),
             ];
 

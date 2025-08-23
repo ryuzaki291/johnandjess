@@ -60,6 +60,6 @@ class Vehicle extends Model
      */
     public function createdBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'creator', 'name');
+        return $this->belongsTo(User::class, 'creator', 'id');
     }
 }
