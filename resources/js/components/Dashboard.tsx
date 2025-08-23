@@ -77,7 +77,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
     const renderPageContent = () => {
         switch (currentPage) {
             case 'vehicle':
-                return <Vehicle />;
+                return <Vehicle token={token} />;
             case 'daily-trips':
                 return <DailyTrips />;
             case 'maintenance':

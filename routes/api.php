@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\VehicleController;
 
 Route::get('/test', function () {
     return response()->json([
@@ -28,4 +29,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/users/{user}', [UserController::class, 'show']);
     Route::put('/users/{user}', [UserController::class, 'update']);
     Route::delete('/users/{user}', [UserController::class, 'destroy']);
+    
+    // Vehicle management routes
+    Route::get('/vehicles', [VehicleController::class, 'index']);
+    Route::post('/vehicles', [VehicleController::class, 'store']);
+    Route::get('/vehicles/{plate_number}', [VehicleController::class, 'show']);
+    Route::put('/vehicles/{plate_number}', [VehicleController::class, 'update']);
+    Route::delete('/vehicles/{plate_number}', [VehicleController::class, 'destroy']);
 });
