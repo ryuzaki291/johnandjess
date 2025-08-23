@@ -9,7 +9,9 @@ export default defineConfig({
             input: ['resources/css/app.css', 'resources/js/app.tsx'],
             refresh: true,
         }),
-        react(),
+        react({
+            include: "**/*.{jsx,tsx}",
+        }),
         tailwindcss(),
     ],
     server: {
