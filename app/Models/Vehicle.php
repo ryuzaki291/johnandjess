@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Vehicle extends Model
 {
@@ -61,5 +62,13 @@ class Vehicle extends Model
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'creator', 'id');
+    }
+
+    /**
+     * Get the daily trips for this vehicle.
+     */
+    public function dailyTriips(): HasMany
+    {
+        return $this->hasMany(DailyTrip::class, 'plate_number', 'plate_number');
     }
 }

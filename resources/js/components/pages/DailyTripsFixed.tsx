@@ -2,12 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { DailyTrip, DailyTripFormData, Vehicle } from '../../types/DailyTrip';
 import DailyTripModal from '../modals/DailyTripModal';
 
-// Helper function to get CSRF token
-const getCsrfToken = (): string | null => {
-    const token = document.head.querySelector('meta[name="csrf-token"]') as HTMLMetaElement;
-    return token ? token.content : null;
-};
-
 const DailyTrips: React.FC = () => {
     const [trips, setTrips] = useState<DailyTrip[]>([]);
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -18,8 +12,8 @@ const DailyTrips: React.FC = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
-        // Check if user is authenticated - use the same key as the main app
-        const token = localStorage.getItem('auth_token');
+        // Check if user is authenticated
+        const token = localStorage.getItem('token');
         if (!token) {
             setIsAuthenticated(false);
             setLoading(false);
@@ -32,7 +26,7 @@ const DailyTrips: React.FC = () => {
 
     const fetchTrips = async () => {
         try {
-            const token = localStorage.getItem('auth_token');
+            const token = localStorage.getItem('token');
             if (!token) {
                 console.error('No authentication token found');
                 return;
@@ -51,8 +45,7 @@ const DailyTrips: React.FC = () => {
             } else if (response.status === 401) {
                 console.error('Authentication failed');
                 setIsAuthenticated(false);
-                localStorage.removeItem('auth_token');
-                localStorage.removeItem('auth_user');
+                localStorage.removeItem('token');
             } else {
                 console.error('Failed to fetch trips');
             }
@@ -65,7 +58,7 @@ const DailyTrips: React.FC = () => {
 
     const fetchVehicles = async () => {
         try {
-            const token = localStorage.getItem('auth_token');
+            const token = localStorage.getItem('token');
             if (!token) {
                 console.error('No authentication token found');
                 return;
@@ -86,8 +79,7 @@ const DailyTrips: React.FC = () => {
                 const data = await response.json();
                 console.log('Raw vehicles data received:', data);
                 
-                // The VehicleController returns vehicles in 'vehicles' property, not 'data'
-                const vehiclesData = data.vehicles || [];
+                const vehiclesData = Array.isArray(data) ? data : (data.data || []);
                 console.log('Extracted vehicles array:', vehiclesData);
                 
                 const formattedVehicles = vehiclesData.map((vehicle: any) => ({
@@ -101,8 +93,7 @@ const DailyTrips: React.FC = () => {
             } else if (response.status === 401) {
                 console.error('Authentication failed while fetching vehicles');
                 setIsAuthenticated(false);
-                localStorage.removeItem('auth_token');
-                localStorage.removeItem('auth_user');
+                localStorage.removeItem('token');
             } else {
                 const errorData = await response.text();
                 console.error('Failed to fetch vehicles. Status:', response.status, 'Error:', errorData);
@@ -142,9 +133,7 @@ const DailyTrips: React.FC = () => {
 
     const handleCreateTrip = async (tripData: DailyTripFormData) => {
         try {
-            const token = localStorage.getItem('auth_token');
-            const csrfToken = getCsrfToken();
-            
+            const token = localStorage.getItem('token');
             if (!token) {
                 console.error('No authentication token found');
                 alert('Authentication required. Please log in again.');
@@ -152,46 +141,20 @@ const DailyTrips: React.FC = () => {
                 return;
             }
 
-            if (!csrfToken) {
-                console.error('No CSRF token found');
-                alert('CSRF token missing. Please refresh the page.');
-                return;
-            }
-
             console.log('Creating trip with data:', tripData);
             console.log('Using token:', token ? 'Token exists' : 'No token');
-            console.log('Using CSRF token:', csrfToken ? 'CSRF token exists' : 'No CSRF token');
-            
-            // Add extra debugging for plate number
-            console.log('Plate number being sent:', tripData.plate_number);
-            console.log('Available vehicles:', vehicles.map(v => v.plate_number));
             
             const response = await fetch('/api/daily-trips', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
                 },
                 body: JSON.stringify(tripData),
             });
 
             console.log('Create trip response status:', response.status);
-            console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-            
-            const responseText = await response.text();
-            console.log('Raw response text:', responseText);
-            
-            let responseData;
-            try {
-                responseData = JSON.parse(responseText);
-            } catch (parseError) {
-                console.error('Failed to parse response as JSON:', parseError);
-                console.error('Response was:', responseText);
-                alert('Server returned invalid response. Please check the server logs.');
-                return;
-            }
-            
+            const responseData = await response.json();
             console.log('Create trip response data:', responseData);
 
             if (response.ok) {
@@ -201,8 +164,7 @@ const DailyTrips: React.FC = () => {
             } else if (response.status === 401) {
                 console.error('Authentication failed during trip creation');
                 setIsAuthenticated(false);
-                localStorage.removeItem('auth_token');
-                localStorage.removeItem('auth_user');
+                localStorage.removeItem('token');
                 alert('Authentication expired. Please log in again.');
             } else if (response.status === 422) {
                 console.error('Validation errors:', responseData.errors);
@@ -213,25 +175,17 @@ const DailyTrips: React.FC = () => {
             }
         } catch (error) {
             console.error('Error creating trip:', error);
-            alert('Error creating trip: ' + (error instanceof Error ? error.message : 'Unknown error'));
+            alert('Error creating trip: ' + error.message);
         }
     };
 
     const handleUpdateTrip = async (id: number, tripData: DailyTripFormData) => {
         try {
-            const token = localStorage.getItem('auth_token');
-            const csrfToken = getCsrfToken();
-            
+            const token = localStorage.getItem('token');
             if (!token) {
                 console.error('No authentication token found');
                 alert('Authentication required. Please log in again.');
                 setIsAuthenticated(false);
-                return;
-            }
-
-            if (!csrfToken) {
-                console.error('No CSRF token found');
-                alert('CSRF token missing. Please refresh the page.');
                 return;
             }
 
@@ -240,7 +194,6 @@ const DailyTrips: React.FC = () => {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
                 },
                 body: JSON.stringify(tripData),
             });
@@ -254,8 +207,7 @@ const DailyTrips: React.FC = () => {
             } else if (response.status === 401) {
                 console.error('Authentication failed during trip update');
                 setIsAuthenticated(false);
-                localStorage.removeItem('auth_token');
-                localStorage.removeItem('auth_user');
+                localStorage.removeItem('token');
                 alert('Authentication expired. Please log in again.');
             } else {
                 const errorData = await response.json();
@@ -264,7 +216,7 @@ const DailyTrips: React.FC = () => {
             }
         } catch (error) {
             console.error('Error updating trip:', error);
-            alert('Error updating trip: ' + (error instanceof Error ? error.message : 'Unknown error'));
+            alert('Error updating trip: ' + error.message);
         }
     };
 
@@ -272,19 +224,11 @@ const DailyTrips: React.FC = () => {
         if (!confirm('Are you sure you want to delete this trip?')) return;
 
         try {
-            const token = localStorage.getItem('auth_token');
-            const csrfToken = getCsrfToken();
-            
+            const token = localStorage.getItem('token');
             if (!token) {
                 console.error('No authentication token found');
                 alert('Authentication required. Please log in again.');
                 setIsAuthenticated(false);
-                return;
-            }
-
-            if (!csrfToken) {
-                console.error('No CSRF token found');
-                alert('CSRF token missing. Please refresh the page.');
                 return;
             }
 
@@ -293,7 +237,6 @@ const DailyTrips: React.FC = () => {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
                 },
             });
 
@@ -303,8 +246,7 @@ const DailyTrips: React.FC = () => {
             } else if (response.status === 401) {
                 console.error('Authentication failed during trip deletion');
                 setIsAuthenticated(false);
-                localStorage.removeItem('auth_token');
-                localStorage.removeItem('auth_user');
+                localStorage.removeItem('token');
                 alert('Authentication expired. Please log in again.');
             } else {
                 console.error('Failed to delete trip');
@@ -312,14 +254,14 @@ const DailyTrips: React.FC = () => {
             }
         } catch (error) {
             console.error('Error deleting trip:', error);
-            alert('Error deleting trip: ' + (error instanceof Error ? error.message : 'Unknown error'));
+            alert('Error deleting trip: ' + error.message);
         }
     };
 
     const filteredTrips = trips.filter(trip =>
-        (trip.customer_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (trip.vehicle?.plate_number || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (trip.destination || '').toLowerCase().includes(searchTerm.toLowerCase())
+        trip.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        trip.vehicle?.plate_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        trip.destination.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     if (loading) {
@@ -369,8 +311,8 @@ const DailyTrips: React.FC = () => {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehicle</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Allowance</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount Billed</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Toll Fee</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fuel Cost</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
@@ -397,10 +339,10 @@ const DailyTrips: React.FC = () => {
                                             {trip.destination}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            ₱{trip.total_allowance || 0}
+                                            ₱{trip.toll_fee}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            ₱{trip.amount_billed || 0}
+                                            ₱{trip.fuel_cost}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                                             <button
@@ -438,7 +380,7 @@ const DailyTrips: React.FC = () => {
                     (data) => handleUpdateTrip(editingTrip.id, data) : 
                     handleCreateTrip
                 }
-                editingTrip={editingTrip}
+                trip={editingTrip}
                 vehicles={vehicles}
             />
         </div>

@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehicleController;
+use App\Http\Controllers\DailyTripController;
 
 Route::get('/test', function () {
     return response()->json([
@@ -36,4 +37,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/vehicles/{plate_number}', [VehicleController::class, 'show']);
     Route::put('/vehicles/{plate_number}', [VehicleController::class, 'update']);
     Route::delete('/vehicles/{plate_number}', [VehicleController::class, 'destroy']);
+    
+    // Daily Trips management routes
+    Route::get('/daily-trips', [DailyTripController::class, 'index']);
+    Route::post('/daily-trips', [DailyTripController::class, 'store']);
+    Route::get('/daily-trips/{dailyTrip}', [DailyTripController::class, 'show']);
+    Route::put('/daily-trips/{dailyTrip}', [DailyTripController::class, 'update']);
+    Route::delete('/daily-trips/{dailyTrip}', [DailyTripController::class, 'destroy']);
+    Route::get('/daily-trips-vehicles', [DailyTripController::class, 'getVehicles']);
 });

@@ -9,17 +9,7 @@ export default defineConfig({
             input: ['resources/css/app.css', 'resources/js/app.tsx'],
             refresh: true,
         }),
-        react({
-            include: "**/*.{jsx,tsx}",
-        }),
+        react(),
         tailwindcss(),
     ],
-    server: {
-        host: '127.0.0.1',
-        port: 5174,
-        hmr: {
-            host: '127.0.0.1',
-            port: 5174,
-        },
-    },
 });
