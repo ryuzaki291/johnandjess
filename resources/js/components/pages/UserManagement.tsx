@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
 
+// Helper function to get CSRF token
+const getCsrfToken = (): string | null => {
+    const token = document.head.querySelector('meta[name="csrf-token"]') as HTMLMetaElement;
+    return token ? token.content : null;
+};
+
 interface User {
     id: number;
     name: string;
@@ -103,13 +109,20 @@ const UserManagement: React.FC<UserManagementProps> = ({ token }) => {
             return;
         }
 
+        const csrfToken = getCsrfToken();
+        if (!csrfToken) {
+            setError('CSRF token missing. Please refresh the page.');
+            return;
+        }
+
         try {
             const response = await fetch(`/api/users/${user.id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken,
                 }
             });
 
@@ -130,10 +143,18 @@ const UserManagement: React.FC<UserManagementProps> = ({ token }) => {
         setSubmitting(true);
         setFormErrors({});
 
+        const csrfToken = getCsrfToken();
+        if (!csrfToken) {
+            setError('CSRF token missing. Please refresh the page.');
+            setSubmitting(false);
+            return;
+        }
+
         const url = modalMode === 'create' ? '/api/users' : `/api/users/${selectedUser?.id}`;
         const method = modalMode === 'create' ? 'POST' : 'PUT';
 
         console.log('Submitting form data:', formData); // Debug log
+        console.log('Using CSRF token:', csrfToken ? 'CSRF token exists' : 'No CSRF token');
 
         try {
             const response = await fetch(url, {
@@ -142,7 +163,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ token }) => {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken,
                 },
                 body: JSON.stringify(formData)
             });

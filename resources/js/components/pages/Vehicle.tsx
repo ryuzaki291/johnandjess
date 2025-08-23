@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
 
+// Helper function to get CSRF token
+const getCsrfToken = (): string | null => {
+    const token = document.head.querySelector('meta[name="csrf-token"]') as HTMLMetaElement;
+    return token ? token.content : null;
+};
+
 interface Vehicle {
     plate_number: string;
     vehicle_type: string | null;
@@ -127,13 +133,20 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
             return;
         }
 
+        const csrfToken = getCsrfToken();
+        if (!csrfToken) {
+            setError('CSRF token missing. Please refresh the page.');
+            return;
+        }
+
         try {
             const response = await fetch(`/api/vehicles/${encodeURIComponent(vehicle.plate_number)}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken,
                 }
             });
 
@@ -155,12 +168,20 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
         setSubmitting(true);
         setFormErrors({});
 
+        const csrfToken = getCsrfToken();
+        if (!csrfToken) {
+            setError('CSRF token missing. Please refresh the page.');
+            setSubmitting(false);
+            return;
+        }
+
         const url = modalMode === 'create' 
             ? '/api/vehicles' 
             : `/api/vehicles/${encodeURIComponent(selectedVehicle?.plate_number || '')}`;
         const method = modalMode === 'create' ? 'POST' : 'PUT';
 
         console.log('Submitting form data:', formData);
+        console.log('Using CSRF token:', csrfToken ? 'CSRF token exists' : 'No CSRF token');
 
         try {
             const response = await fetch(url, {
@@ -169,7 +190,8 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken,
                 },
                 body: JSON.stringify(formData)
             });
