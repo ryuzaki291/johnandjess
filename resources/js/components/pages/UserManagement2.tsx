@@ -15,7 +15,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ token }) => {
 
     const fetchUsers = async () => {
         try {
-            const response = await fetch('/api/users', {
+            const response = await fetch('/users', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'

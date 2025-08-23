@@ -112,7 +112,6 @@ const App: React.FC = () => {
     return (
         <Login
             onLogin={handleLogin}
-            onSwitchToRegister={() => setAuthView('register')}
         />
     );
 };

@@ -39,7 +39,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
             });
 
         // Fetch users list
-        fetch('/api/users', {
+        fetch('/users', {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Accept': 'application/json'

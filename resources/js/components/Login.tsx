@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 interface LoginProps {
     onLogin: (user: any, token: string) => void;
-    onSwitchToRegister: () => void;
+    onSwitchToRegister?: () => void;
 }
 
 interface LoginFormData {

@@ -3,10 +3,11 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
 
 Route::get('/test', function () {
     return response()->json([
-        'message' => 'Laravel + React + MySQL setup is working!',
+        'message' => 'Laravel + React + SQLite setup is working!',
         'timestamp' => now(),
         'database' => config('database.default')
     ]);
@@ -20,9 +21,11 @@ Route::post('/auth/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/user', [AuthController::class, 'user']);
-    Route::get('/users', function () {
-        return response()->json([
-            'users' => \App\Models\User::all()
-        ]);
-    });
+    
+    // User management routes
+    Route::get('/users', [UserController::class, 'index']);
+    Route::post('/users', [UserController::class, 'store']);
+    Route::get('/users/{user}', [UserController::class, 'show']);
+    Route::put('/users/{user}', [UserController::class, 'update']);
+    Route::delete('/users/{user}', [UserController::class, 'destroy']);
 });
