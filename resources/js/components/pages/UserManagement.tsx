@@ -133,6 +133,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ token }) => {
         const url = modalMode === 'create' ? '/api/users' : `/api/users/${selectedUser?.id}`;
         const method = modalMode === 'create' ? 'POST' : 'PUT';
 
+        console.log('Submitting form data:', formData); // Debug log
+
         try {
             const response = await fetch(url, {
                 method,
@@ -146,6 +148,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ token }) => {
             });
 
             const data = await response.json();
+            console.log('API response:', data); // Debug log
 
             if (data.success) {
                 if (modalMode === 'create') {
@@ -163,6 +166,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ token }) => {
                 }
             }
         } catch (err) {
+            console.error('Submit error:', err); // Debug log
             setError('Error submitting form');
         } finally {
             setSubmitting(false);

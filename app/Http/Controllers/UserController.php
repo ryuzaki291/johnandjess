@@ -34,6 +34,9 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        // Debug log the incoming request data
+        \Log::info('Creating user with data:', $request->all());
+        
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -50,12 +53,18 @@ class UserController extends Controller
         }
 
         try {
-            $user = User::create([
+            $userData = [
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'role' => $request->role ?? 'user'
-            ]);
+            ];
+            
+            \Log::info('Creating user with processed data:', $userData);
+            
+            $user = User::create($userData);
+            
+            \Log::info('User created successfully:', $user->toArray());
 
             return response()->json([
                 'success' => true,
