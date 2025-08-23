@@ -7,6 +7,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\DailyTripController;
 use App\Http\Controllers\DriversMaintenanceController;
+use App\Http\Controllers\MainMaintenanceController;
 
 Route::get('/test', function () {
     return response()->json([
@@ -27,6 +28,14 @@ Route::get('/drivers-maintenance/{id}', [DriversMaintenanceController::class, 's
 Route::put('/drivers-maintenance/{id}', [DriversMaintenanceController::class, 'update']);
 Route::delete('/drivers-maintenance/{id}', [DriversMaintenanceController::class, 'destroy']);
 Route::get('/drivers-maintenance-vehicles', [DriversMaintenanceController::class, 'getVehicles']);
+
+// Temporarily unprotected main maintenance routes for testing
+Route::get('/main-maintenance', [MainMaintenanceController::class, 'index']);
+Route::post('/main-maintenance', [MainMaintenanceController::class, 'store']);
+Route::get('/main-maintenance/{id}', [MainMaintenanceController::class, 'show']);
+Route::put('/main-maintenance/{id}', [MainMaintenanceController::class, 'update']);
+Route::delete('/main-maintenance/{id}', [MainMaintenanceController::class, 'destroy']);
+Route::get('/main-maintenance-vehicles', [MainMaintenanceController::class, 'getVehicles']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {

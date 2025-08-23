@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import MainMaintenanceTab from './MainMaintenanceTab';
 
 interface Vehicle {
     plate_number: string;
@@ -22,18 +23,36 @@ interface DriverMaintenanceRecord {
     vehicle?: Vehicle;
 }
 
+interface MainMaintenanceRecord {
+    id: number;
+    assigneeName: string;
+    regionAssign: string;
+    supplierName: string;
+    vehicleDetails: string;
+    plateNumber: string;
+    odometerRecord: string;
+    remarks: string;
+    dateOfPms: string;
+    performed: string;
+    amount: number;
+    qty: number;
+    vehicle?: Vehicle;
+}
+
 const MaintenanceNew: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'drivers' | 'main'>('drivers');
     const [driversMaintenanceRecords, setDriversMaintenanceRecords] = useState<DriverMaintenanceRecord[]>([]);
+    const [mainMaintenanceRecords, setMainMaintenanceRecords] = useState<MainMaintenanceRecord[]>([]);
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
-    const [editingRecord, setEditingRecord] = useState<DriverMaintenanceRecord | null>(null);
+    const [editingRecord, setEditingRecord] = useState<DriverMaintenanceRecord | MainMaintenanceRecord | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     
     const [formData, setFormData] = useState({
+        // Driver maintenance fields
         driverName: '',
         plateNumber: '',
         odometerRecord: '',
@@ -44,18 +63,51 @@ const MaintenanceNew: React.FC = () => {
         description: '',
         nextPms: '',
         registrationMonthDate: '',
-        parts: ''
+        parts: '',
+        // Main maintenance fields
+        assigneeName: '',
+        regionAssign: '',
+        supplierName: '',
+        vehicleDetails: '',
+        remarks: '',
+        dateOfPms: ''
     });
 
     useEffect(() => {
         fetchVehicles();
         fetchDriversMaintenanceRecords();
+        fetchMainMaintenanceRecords();
     }, []);
 
     // Function to get CSRF token
     const getCSRFToken = () => {
         const token = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement;
         return token ? token.content : '';
+    };
+
+    // Function to initialize form data based on active tab
+    const initializeFormData = () => {
+        return {
+            // Driver maintenance fields
+            driverName: '',
+            plateNumber: '',
+            odometerRecord: '',
+            date: '',
+            performed: '',
+            amount: 0,
+            qty: 0,
+            description: '',
+            nextPms: '',
+            registrationMonthDate: '',
+            parts: '',
+            // Main maintenance fields
+            assigneeName: '',
+            regionAssign: '',
+            supplierName: '',
+            vehicleDetails: '',
+            remarks: '',
+            dateOfPms: ''
+        };
     };
 
     const fetchVehicles = async () => {
@@ -120,6 +172,46 @@ const MaintenanceNew: React.FC = () => {
         }
     };
 
+    const fetchMainMaintenanceRecords = async () => {
+        try {
+            setIsLoading(true);
+            const response = await fetch('/api/main-maintenance', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': getCSRFToken()
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    const convertedRecords = data.data.map((record: any) => ({
+                        id: record.id,
+                        assigneeName: record.assignee_name,
+                        regionAssign: record.region_assign,
+                        supplierName: record.supplier_name,
+                        vehicleDetails: record.vehicle_details,
+                        plateNumber: record.plate_number,
+                        odometerRecord: record.odometer_record,
+                        remarks: record.remarks || '',
+                        dateOfPms: record.date_of_pms,
+                        performed: record.performed,
+                        amount: record.amount,
+                        qty: record.qty,
+                        vehicle: record.vehicle
+                    }));
+                    setMainMaintenanceRecords(convertedRecords);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching main maintenance records:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({
@@ -129,19 +221,7 @@ const MaintenanceNew: React.FC = () => {
     };
 
     const openModal = () => {
-        setFormData({
-            driverName: '',
-            plateNumber: '',
-            odometerRecord: '',
-            date: '',
-            performed: '',
-            amount: 0,
-            qty: 0,
-            description: '',
-            nextPms: '',
-            registrationMonthDate: '',
-            parts: ''
-        });
+        setFormData(initializeFormData());
         setIsEditing(false);
         setEditingRecord(null);
         setIsModalOpen(true);
@@ -232,20 +312,40 @@ const MaintenanceNew: React.FC = () => {
         }
     };
 
-    const handleEdit = (record: DriverMaintenanceRecord) => {
-        setFormData({
-            driverName: record.driverName,
-            plateNumber: record.plateNumber,
-            odometerRecord: record.odometerRecord,
-            date: record.date,
-            performed: record.performed,
-            amount: record.amount,
-            qty: record.qty,
-            description: record.description,
-            nextPms: record.nextPms,
-            registrationMonthDate: record.registrationMonthDate,
-            parts: record.parts
-        });
+    const handleEdit = (record: DriverMaintenanceRecord | MainMaintenanceRecord) => {
+        if ('driverName' in record) {
+            // Driver maintenance record
+            setFormData({
+                ...initializeFormData(),
+                driverName: record.driverName,
+                plateNumber: record.plateNumber,
+                odometerRecord: record.odometerRecord,
+                date: record.date,
+                performed: record.performed,
+                amount: record.amount,
+                qty: record.qty,
+                description: record.description,
+                nextPms: record.nextPms,
+                registrationMonthDate: record.registrationMonthDate,
+                parts: record.parts
+            });
+        } else {
+            // Main maintenance record
+            setFormData({
+                ...initializeFormData(),
+                assigneeName: record.assigneeName,
+                regionAssign: record.regionAssign,
+                supplierName: record.supplierName,
+                vehicleDetails: record.vehicleDetails,
+                plateNumber: record.plateNumber,
+                odometerRecord: record.odometerRecord,
+                remarks: record.remarks,
+                dateOfPms: record.dateOfPms,
+                performed: record.performed,
+                amount: record.amount,
+                qty: record.qty
+            });
+        }
         setIsEditing(true);
         setEditingRecord(record);
         setIsModalOpen(true);
@@ -403,10 +503,7 @@ const MaintenanceNew: React.FC = () => {
 
                 {/* Main Maintenance Tab */}
                 {activeTab === 'main' && (
-                    <div className="bg-white rounded-lg shadow p-6">
-                        <h2 className="text-lg font-medium text-gray-900 mb-4">Main Maintenance</h2>
-                        <p className="text-gray-500">Main maintenance functionality coming soon...</p>
-                    </div>
+                    <MainMaintenanceTab />
                 )}
 
                 {/* Modal for Add/Edit Driver Maintenance */}
