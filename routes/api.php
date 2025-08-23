@@ -8,6 +8,7 @@ use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\DailyTripController;
 use App\Http\Controllers\DriversMaintenanceController;
 use App\Http\Controllers\MainMaintenanceController;
+use App\Http\Controllers\ContractController;
 
 Route::get('/test', function () {
     return response()->json([
@@ -36,6 +37,14 @@ Route::get('/main-maintenance/{id}', [MainMaintenanceController::class, 'show'])
 Route::put('/main-maintenance/{id}', [MainMaintenanceController::class, 'update']);
 Route::delete('/main-maintenance/{id}', [MainMaintenanceController::class, 'destroy']);
 Route::get('/main-maintenance-vehicles', [MainMaintenanceController::class, 'getVehicles']);
+
+// Temporarily unprotected contract routes for testing
+Route::get('/contracts', [ContractController::class, 'index']);
+Route::post('/contracts', [ContractController::class, 'store']);
+Route::get('/contracts/{id}', [ContractController::class, 'show']);
+Route::put('/contracts/{id}', [ContractController::class, 'update']);
+Route::delete('/contracts/{id}', [ContractController::class, 'destroy']);
+Route::get('/contracts-vehicles', [ContractController::class, 'getVehicles']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
