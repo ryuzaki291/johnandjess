@@ -10,6 +10,7 @@ use App\Http\Controllers\DriversMaintenanceController;
 use App\Http\Controllers\MainMaintenanceController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\IncidentReportController;
+use App\Http\Controllers\SearchController;
 
 Route::get('/test', function () {
     return response()->json([
@@ -55,6 +56,10 @@ Route::put('/incident-reports/{id}', [IncidentReportController::class, 'update']
 Route::delete('/incident-reports/{id}', [IncidentReportController::class, 'destroy']);
 Route::get('/incident-reports-vehicles', [IncidentReportController::class, 'getVehicles']);
 Route::post('/incident-reports/{id}/remove-file', [IncidentReportController::class, 'removeFile']);
+
+// Search routes
+Route::get('/search/vehicles', [SearchController::class, 'getVehicles']);
+Route::post('/search/plate-number', [SearchController::class, 'searchByPlateNumber']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
