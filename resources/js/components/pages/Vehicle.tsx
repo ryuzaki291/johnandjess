@@ -289,7 +289,7 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
     }
 
     return (
-        <div className="p-4 sm:p-6">
+        <div className="max-w-7xl mx-auto p-6">
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 space-y-4 sm:space-y-0">
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Vehicle Management</h1>

@@ -184,7 +184,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
 
     const renderDashboardContent = () => {
         return (
-            <div className="p-6">
+            <div className="max-w-7xl mx-auto">
                 {/* Tab Navigation */}
                 <div className="mb-6">
                     <div className="border-b border-gray-200">
@@ -470,50 +470,50 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                                     <h3 className="text-lg font-medium text-gray-900">Daily Trips ({searchResults.daily_trips.length})</h3>
                                 </div>
                                 <div className="overflow-x-auto">
-                                    <table className="min-w-full divide-y divide-gray-200">
+                                    <table className="min-w-full divide-y divide-gray-200 table-fixed">
                                         <thead className="bg-gray-50">
                                             <tr>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Month/Year</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date From</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date To</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Particular</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Allowance</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Drivers Networth</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status 1</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount Billed</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">VAT 12%</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service Invoice</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status 2</th>
+                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">ID</th>
+                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Month/Year</th>
+                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Department</th>
+                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">Customer</th>
+                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">Destination</th>
+                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Date From</th>
+                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Date To</th>
+                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Particular</th>
+                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Total Allowance</th>
+                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Drivers Networth</th>
+                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">Status 1</th>
+                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Amount Billed</th>
+                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">VAT 12%</th>
+                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Total Amount</th>
+                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Service Invoice</th>
+                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">Status 2</th>
                                             </tr>
                                         </thead>
                                         <tbody className="bg-white divide-y divide-gray-200">
                                             {searchResults.daily_trips.map((trip, index) => (
                                                 <tr key={index}>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{trip.id}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{trip.month_year}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{trip.department}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{trip.customer_name}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{trip.destination}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">{trip.id}</td>
+                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">{trip.month_year}</td>
+                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">{trip.department}</td>
+                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">{trip.customer_name}</td>
+                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">{trip.destination}</td>
+                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
                                                         {new Date(trip.date_from).toLocaleDateString()}
                                                     </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
                                                         {new Date(trip.date_to).toLocaleDateString()}
                                                     </td>
-                                                    <td className="px-6 py-4 text-sm text-gray-900">{trip.particular}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{trip.total_allowance}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{trip.drivers_networth}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{trip.status_1}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{trip.amount_billed}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{trip.vat_12_percent}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{trip.total_amount}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{trip.service_invoice}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{trip.status_2}</td>
+                                                    <td className="px-2 py-2 text-sm text-gray-900">{trip.particular}</td>
+                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">₱{trip.total_allowance}</td>
+                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">₱{trip.drivers_networth}</td>
+                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">{trip.status_1}</td>
+                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">₱{trip.amount_billed}</td>
+                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">₱{trip.vat_12_percent}</td>
+                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">₱{trip.total_amount}</td>
+                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">{trip.service_invoice}</td>
+                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">{trip.status_2}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -823,10 +823,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
             />
 
             {/* Main Content */}
-            <div className="flex-1">
+            <div className="flex-1 flex flex-col min-w-0">
                 {/* Header */}
                 <div className="bg-white shadow-sm border-b border-gray-200">
-                    <div className="flex justify-between items-center px-4 py-4">
+                    <div className="flex justify-between items-center px-6 py-4">
                         <div className="flex items-center">
                             <button
                                 onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -859,7 +859,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                 </div>
 
                 {/* Page Content */}
-                <main className="flex-1 overflow-y-auto">
+                <main className="flex-1 overflow-y-auto p-6">
                     {renderPageContent()}
                 </main>
             </div>
