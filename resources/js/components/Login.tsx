@@ -61,7 +61,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
                 <div>
                     <div className="flex justify-center">
                         <img
-                            className="h-16 w-auto"
+                            className="h-32 w-auto"
                             src="/logo.png"
                             alt="John & Jess"
                         />
@@ -72,11 +72,6 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
                     <p className="mt-2 text-center text-sm text-gray-600">
                         Welcome to John & Jess App
                     </p>
-                    <div className="mt-2 text-center text-xs text-gray-500 bg-blue-50 p-3 rounded-md">
-                        <p className="font-medium text-blue-800">Default Login:</p>
-                        <p>Email: karloabina@gmail.com</p>
-                        <p>Password: Jkabina29</p>
-                    </div>
                 </div>
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                     <div className="rounded-md shadow-sm -space-y-px">
