@@ -9,6 +9,7 @@ use App\Http\Controllers\DailyTripController;
 use App\Http\Controllers\DriversMaintenanceController;
 use App\Http\Controllers\MainMaintenanceController;
 use App\Http\Controllers\ContractController;
+use App\Http\Controllers\IncidentReportController;
 
 Route::get('/test', function () {
     return response()->json([
@@ -45,6 +46,15 @@ Route::get('/contracts/{id}', [ContractController::class, 'show']);
 Route::put('/contracts/{id}', [ContractController::class, 'update']);
 Route::delete('/contracts/{id}', [ContractController::class, 'destroy']);
 Route::get('/contracts-vehicles', [ContractController::class, 'getVehicles']);
+
+// Temporarily unprotected incident report routes for testing
+Route::get('/incident-reports', [IncidentReportController::class, 'index']);
+Route::post('/incident-reports', [IncidentReportController::class, 'store']);
+Route::get('/incident-reports/{id}', [IncidentReportController::class, 'show']);
+Route::put('/incident-reports/{id}', [IncidentReportController::class, 'update']);
+Route::delete('/incident-reports/{id}', [IncidentReportController::class, 'destroy']);
+Route::get('/incident-reports-vehicles', [IncidentReportController::class, 'getVehicles']);
+Route::post('/incident-reports/{id}/remove-file', [IncidentReportController::class, 'removeFile']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
