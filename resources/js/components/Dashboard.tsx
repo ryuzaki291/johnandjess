@@ -300,7 +300,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                         <h1 className="text-3xl font-bold text-gray-900">
                             Welcome back, {user.name}!
                         </h1>
-                        <p className="text-gray-600">John & Jess Transport Management System</p>
+                        <p className="text-gray-600">John & Jess Car Rental Service Corp.</p>
                     </div>
                     <button
                         onClick={fetchDashboardStats}
@@ -588,193 +588,356 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
         return (
             <>
                 {/* Search Header */}
-                <div className="mb-6">
-                    <h1 className="text-3xl font-bold text-gray-900">Search by Plate Number</h1>
-                    <p className="text-gray-600">Find all records related to a specific vehicle</p>
+                <div className="mb-8">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-900">Vehicle Search & Analytics</h1>
+                            <p className="text-gray-600 mt-2">Comprehensive vehicle record lookup and analysis</p>
+                        </div>
+                        <div className="flex items-center space-x-2 text-sm text-gray-500">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                            <span>Advanced Search</span>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Search Form */}
-                <div className="bg-white rounded-lg shadow p-6 mb-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Select Vehicle (Plate Number)
-                            </label>
-                            <select 
-                                value={selectedPlateNumber}
-                                onChange={(e) => setSelectedPlateNumber(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="">Select a vehicle...</option>
-                                {vehicles.map((vehicle) => (
-                                    <option key={vehicle.plate_number} value={vehicle.plate_number}>
-                                        {vehicle.plate_number} - {vehicle.vehicle_type} ({vehicle.vehicle_brand})
-                                    </option>
-                                ))}
-                            </select>
+                {/* Enhanced Search Form */}
+                <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8 mb-8">
+                    <div className="flex items-center mb-6">
+                        <div className="p-3 bg-blue-100 rounded-full mr-4">
+                            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Or Enter Plate Number
+                            <h2 className="text-xl font-semibold text-gray-900">Vehicle Lookup</h2>
+                            <p className="text-gray-600">Search by plate number to access complete vehicle records</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-3">
+                                Select from Fleet Registry
                             </label>
-                            <input
-                                type="text"
-                                value={selectedPlateNumber}
-                                onChange={(e) => setSelectedPlateNumber(e.target.value.toUpperCase())}
-                                placeholder="ABC-123"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
+                            <div className="relative">
+                                <select 
+                                    value={selectedPlateNumber}
+                                    onChange={(e) => setSelectedPlateNumber(e.target.value)}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm"
+                                >
+                                    <option value="">Choose a registered vehicle...</option>
+                                    {vehicles.map((vehicle) => (
+                                        <option key={vehicle.plate_number} value={vehicle.plate_number}>
+                                            {vehicle.plate_number} • {vehicle.vehicle_type} • {vehicle.vehicle_brand}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-3">
+                                Direct Plate Number Entry
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    value={selectedPlateNumber}
+                                    onChange={(e) => setSelectedPlateNumber(e.target.value.toUpperCase())}
+                                    placeholder="e.g., ABC-1234"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm font-mono"
+                                />
+                                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                    </svg>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
                     {searchError && (
-                        <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-                            {searchError}
+                        <div className="mt-6 p-4 bg-red-50 border-l-4 border-red-400 rounded-r-lg">
+                            <div className="flex">
+                                <div className="flex-shrink-0">
+                                    <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.728-.833-2.498 0L5.732 15.5c-.77.833.192 2.5 1.732 2.5z" />
+                                    </svg>
+                                </div>
+                                <div className="ml-3">
+                                    <h3 className="text-sm font-medium text-red-800">Search Error</h3>
+                                    <p className="text-sm text-red-700 mt-1">{searchError}</p>
+                                </div>
+                            </div>
                         </div>
                     )}
 
-                    <div className="mt-4">
-                        <button 
-                            onClick={handleSearch}
-                            disabled={searchLoading || !selectedPlateNumber}
-                            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-6 py-2 rounded-md font-medium mr-3"
-                        >
-                            {searchLoading ? 'Searching...' : 'Search'}
-                        </button>
-                        <button 
-                            onClick={handleClearSearch}
-                            className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-md font-medium"
-                        >
-                            Clear
-                        </button>
+                    <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
+                        <div className="text-sm text-gray-500">
+                            {vehicles.length > 0 && (
+                                <span>{vehicles.length} vehicles in registry</span>
+                            )}
+                        </div>
+                        <div className="flex space-x-3">
+                            <button 
+                                onClick={handleClearSearch}
+                                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors"
+                            >
+                                Clear Search
+                            </button>
+                            <button 
+                                onClick={handleSearch}
+                                disabled={searchLoading || !selectedPlateNumber}
+                                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors flex items-center space-x-2"
+                            >
+                                {searchLoading ? (
+                                    <>
+                                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                                        <span>Searching...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                        <span>Search Records</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
                     </div>
                 </div>
 
                 {/* Search Results */}
                 {searchResults && (
-                    <div className="space-y-6">
-                        {/* Vehicle Info */}
-                        <div className="bg-white rounded-lg shadow">
-                            <div className="px-6 py-4 border-b border-gray-200">
-                                <h3 className="text-lg font-medium text-gray-900">Vehicle Information</h3>
+                    <div className="space-y-8">
+                        {/* Vehicle Information Card */}
+                        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                            <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+                                <div className="flex items-center justify-between text-white">
+                                    <div className="flex items-center">
+                                        <div className="p-2 bg-white bg-opacity-20 rounded-lg mr-3">
+                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l5.5-2 5.5 2z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-semibold">Vehicle Profile</h3>
+                                            <p className="text-blue-100 text-sm">Complete vehicle information</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-2xl font-bold">{searchResults.vehicle.plate_number}</div>
+                                        <div className="text-blue-100 text-sm">License Plate</div>
+                                    </div>
+                                </div>
                             </div>
                             <div className="p-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-500">Plate Number</p>
-                                        <p className="text-lg text-gray-900">{searchResults.vehicle.plate_number}</p>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <div className="bg-gray-50 p-4 rounded-lg">
+                                        <p className="text-sm font-medium text-gray-500 mb-1">Vehicle Type</p>
+                                        <p className="text-lg font-semibold text-gray-900">{searchResults.vehicle.vehicle_type}</p>
                                     </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-500">Vehicle Type</p>
-                                        <p className="text-lg text-gray-900">{searchResults.vehicle.vehicle_type}</p>
+                                    <div className="bg-gray-50 p-4 rounded-lg">
+                                        <p className="text-sm font-medium text-gray-500 mb-1">Brand & Model</p>
+                                        <p className="text-lg font-semibold text-gray-900">{searchResults.vehicle.vehicle_brand}</p>
                                     </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-500">Brand</p>
-                                        <p className="text-lg text-gray-900">{searchResults.vehicle.vehicle_brand}</p>
+                                    <div className="bg-gray-50 p-4 rounded-lg">
+                                        <p className="text-sm font-medium text-gray-500 mb-1">Owner</p>
+                                        <p className="text-lg font-semibold text-gray-900">{searchResults.vehicle.vehicle_owner}</p>
                                     </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-500">Owner</p>
-                                        <p className="text-lg text-gray-900">{searchResults.vehicle.vehicle_owner}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-500">Status</p>
-                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                    <div className="bg-gray-50 p-4 rounded-lg">
+                                        <p className="text-sm font-medium text-gray-500 mb-1">Status</p>
+                                        <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
                                             searchResults.vehicle.vehicle_status === 'active' 
-                                                ? 'bg-green-100 text-green-800' 
-                                                : 'bg-red-100 text-red-800'
+                                                ? 'bg-green-100 text-green-800 border border-green-200' 
+                                                : searchResults.vehicle.vehicle_status === 'maintenance'
+                                                ? 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                                                : 'bg-red-100 text-red-800 border border-red-200'
                                         }`}>
-                                            {searchResults.vehicle.vehicle_status}
+                                            {searchResults.vehicle.vehicle_status?.charAt(0).toUpperCase() + searchResults.vehicle.vehicle_status?.slice(1)}
                                         </span>
                                     </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-500">Date Added</p>
-                                        <p className="text-lg text-gray-900">
-                                            {new Date(searchResults.vehicle.add_date_in_company).toLocaleDateString()}
+                                    <div className="bg-gray-50 p-4 rounded-lg">
+                                        <p className="text-sm font-medium text-gray-500 mb-1">Date Added</p>
+                                        <p className="text-lg font-semibold text-gray-900">
+                                            {new Date(searchResults.vehicle.add_date_in_company).toLocaleDateString('en-US', {
+                                                year: 'numeric',
+                                                month: 'long',
+                                                day: 'numeric'
+                                            })}
                                         </p>
+                                    </div>
+                                    <div className="bg-gray-50 p-4 rounded-lg">
+                                        <p className="text-sm font-medium text-gray-500 mb-1">Owner Address</p>
+                                        <p className="text-sm text-gray-700">{searchResults.vehicle.vehicle_owner_address || 'Not specified'}</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Summary Cards */}
-                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                            <div className="bg-blue-50 rounded-lg p-4">
-                                <p className="text-sm font-medium text-blue-600">Daily Trips</p>
-                                <p className="text-2xl font-bold text-blue-900">{searchResults.summary.total_daily_trips}</p>
+                        {/* Analytics Overview Cards */}
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+                            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-blue-100 text-sm font-medium">Daily Trips</p>
+                                        <p className="text-3xl font-bold">{searchResults.summary.total_daily_trips}</p>
+                                    </div>
+                                    <div className="p-3 bg-white bg-opacity-20 rounded-lg">
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                                        </svg>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="bg-green-50 rounded-lg p-4">
-                                <p className="text-sm font-medium text-green-600">Drivers Maintenance</p>
-                                <p className="text-2xl font-bold text-green-900">{searchResults.summary.total_drivers_maintenance}</p>
+                            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-green-100 text-sm font-medium">Driver Maintenance</p>
+                                        <p className="text-3xl font-bold">{searchResults.summary.total_drivers_maintenance}</p>
+                                    </div>
+                                    <div className="p-3 bg-white bg-opacity-20 rounded-lg">
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="bg-yellow-50 rounded-lg p-4">
-                                <p className="text-sm font-medium text-yellow-600">Main Maintenance</p>
-                                <p className="text-2xl font-bold text-yellow-900">{searchResults.summary.total_main_maintenance}</p>
+                            <div className="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl p-6 text-white shadow-lg">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-yellow-100 text-sm font-medium">Main Maintenance</p>
+                                        <p className="text-3xl font-bold">{searchResults.summary.total_main_maintenance}</p>
+                                    </div>
+                                    <div className="p-3 bg-white bg-opacity-20 rounded-lg">
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a1 1 0 01-1-1V9a1 1 0 011-1h1a2 2 0 100-4H4a1 1 0 01-1-1V4a1 1 0 011-1h3a1 1 0 001-1z" />
+                                        </svg>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="bg-purple-50 rounded-lg p-4">
-                                <p className="text-sm font-medium text-purple-600">Contracts</p>
-                                <p className="text-2xl font-bold text-purple-900">{searchResults.summary.total_contracts}</p>
+                            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-purple-100 text-sm font-medium">Contracts</p>
+                                        <p className="text-3xl font-bold">{searchResults.summary.total_contracts}</p>
+                                    </div>
+                                    <div className="p-3 bg-white bg-opacity-20 rounded-lg">
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="bg-red-50 rounded-lg p-4">
-                                <p className="text-sm font-medium text-red-600">Incident Reports</p>
-                                <p className="text-2xl font-bold text-red-900">{searchResults.summary.total_incident_reports}</p>
+                            <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-6 text-white shadow-lg">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-red-100 text-sm font-medium">Incident Reports</p>
+                                        <p className="text-3xl font-bold">{searchResults.summary.total_incident_reports}</p>
+                                    </div>
+                                    <div className="p-3 bg-white bg-opacity-20 rounded-lg">
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.728-.833-2.498 0L5.732 15.5c-.77.833.192 2.5 1.732 2.5z" />
+                                        </svg>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         {/* Daily Trips */}
                         {searchResults.daily_trips.length > 0 && (
-                            <div className="bg-white rounded-lg shadow">
-                                <div className="px-6 py-4 border-b border-gray-200">
-                                    <h3 className="text-lg font-medium text-gray-900">Daily Trips ({searchResults.daily_trips.length})</h3>
+                            <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-blue-100">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center">
+                                            <div className="p-2 bg-blue-100 rounded-lg mr-3">
+                                                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <h3 className="text-lg font-semibold text-gray-900">Trip Records</h3>
+                                                <p className="text-sm text-gray-600">Complete trip history and billing information</p>
+                                            </div>
+                                        </div>
+                                        <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">
+                                            {searchResults.daily_trips.length} Records
+                                        </div>
+                                    </div>
                                 </div>
                                 <div className="overflow-x-auto">
-                                    <table className="min-w-full divide-y divide-gray-200 table-fixed">
-                                        <thead className="bg-gray-50">
-                                            <tr>
-                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">ID</th>
-                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Month/Year</th>
-                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Department</th>
-                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">Customer</th>
-                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">Destination</th>
-                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Date From</th>
-                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Date To</th>
-                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Particular</th>
-                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Total Allowance</th>
-                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Drivers Networth</th>
-                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">Status 1</th>
-                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Amount Billed</th>
-                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">VAT 12%</th>
-                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Total Amount</th>
-                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Service Invoice</th>
-                                                <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">Status 2</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200">
+                                    <div className="min-w-full" style={{ minWidth: '1600px' }}>
+                                        <div className="bg-gray-50 flex text-xs font-semibold text-gray-700 uppercase tracking-wider border-b border-gray-200">
+                                            <div className="px-3 py-3 w-20">Period</div>
+                                            <div className="px-3 py-3 w-20">Dept</div>
+                                            <div className="px-3 py-3 w-32">Customer</div>
+                                            <div className="px-3 py-3 w-40">Destination</div>
+                                            <div className="px-3 py-3 w-24">From</div>
+                                            <div className="px-3 py-3 w-24">To</div>
+                                            <div className="px-3 py-3 w-28">Allowance</div>
+                                            <div className="px-3 py-3 w-28">Driver Pay</div>
+                                            <div className="px-3 py-3 w-20">Status</div>
+                                            <div className="px-3 py-3 w-28">Billed</div>
+                                            <div className="px-3 py-3 w-20">VAT</div>
+                                            <div className="px-3 py-3 w-28">Total</div>
+                                            <div className="px-3 py-3 w-24">Invoice</div>
+                                            <div className="px-3 py-3 w-24">Payment</div>
+                                        </div>
+                                        <div className="bg-white divide-y divide-gray-100">
                                             {searchResults.daily_trips.map((trip, index) => (
-                                                <tr key={index}>
-                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">{trip.id}</td>
-                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">{trip.month_year}</td>
-                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">{trip.department}</td>
-                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">{trip.customer_name}</td>
-                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">{trip.destination}</td>
-                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
-                                                        {new Date(trip.date_from).toLocaleDateString()}
-                                                    </td>
-                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
-                                                        {new Date(trip.date_to).toLocaleDateString()}
-                                                    </td>
-                                                    <td className="px-2 py-2 text-sm text-gray-900">{trip.particular}</td>
-                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">₱{trip.total_allowance}</td>
-                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">₱{trip.drivers_networth}</td>
-                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">{trip.status_1}</td>
-                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">₱{trip.amount_billed}</td>
-                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">₱{trip.vat_12_percent}</td>
-                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">₱{trip.total_amount}</td>
-                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">{trip.service_invoice}</td>
-                                                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">{trip.status_2}</td>
-                                                </tr>
+                                                <div key={index} className="flex text-sm hover:bg-gray-50 transition-colors">
+                                                    <div className="px-3 py-4 w-20 font-medium text-gray-900">{trip.month_year}</div>
+                                                    <div className="px-3 py-4 w-20 text-gray-600">{trip.department}</div>
+                                                    <div className="px-3 py-4 w-32 font-medium text-gray-900 truncate" title={trip.customer_name}>{trip.customer_name}</div>
+                                                    <div className="px-3 py-4 w-40 text-gray-700 truncate" title={trip.destination}>{trip.destination}</div>
+                                                    <div className="px-3 py-4 w-24 text-gray-600">
+                                                        {new Date(trip.date_from).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}
+                                                    </div>
+                                                    <div className="px-3 py-4 w-24 text-gray-600">
+                                                        {new Date(trip.date_to).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}
+                                                    </div>
+                                                    <div className="px-3 py-4 w-28 font-semibold text-green-700">₱{trip.total_allowance?.toLocaleString()}</div>
+                                                    <div className="px-3 py-4 w-28 font-semibold text-blue-700">₱{trip.drivers_networth?.toLocaleString()}</div>
+                                                    <div className="px-3 py-4 w-20">
+                                                        <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                                                            {trip.status_1}
+                                                        </span>
+                                                    </div>
+                                                    <div className="px-3 py-4 w-28 font-semibold text-gray-900">₱{trip.amount_billed?.toLocaleString()}</div>
+                                                    <div className="px-3 py-4 w-20 text-orange-600">₱{trip.vat_12_percent?.toLocaleString()}</div>
+                                                    <div className="px-3 py-4 w-28 font-bold text-gray-900">₱{trip.total_amount?.toLocaleString()}</div>
+                                                    <div className="px-3 py-4 w-24 font-mono text-gray-600 text-xs">{trip.service_invoice}</div>
+                                                    <div className="px-3 py-4 w-24">
+                                                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                                                            trip.status_2 === 'Paid' 
+                                                                ? 'bg-green-100 text-green-800' 
+                                                                : 'bg-yellow-100 text-yellow-800'
+                                                        }`}>
+                                                            {trip.status_2}
+                                                        </span>
+                                                    </div>
+                                                </div>
                                             ))}
-                                        </tbody>
-                                    </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                                    <div className="flex justify-between text-sm text-gray-600">
+                                        <span>Total trips recorded: {searchResults.daily_trips.length}</span>
+                                        <span>
+                                            Total revenue: ₱{searchResults.daily_trips.reduce((sum, trip) => sum + (trip.total_amount || 0), 0).toLocaleString()}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -1030,18 +1193,37 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                     </div>
                 )}
 
-                {/* No Results */}
+                {/* No Results State */}
                 {searchResults === null && !searchLoading && (
-                    <div className="bg-white rounded-lg shadow">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200">
                         <div className="px-6 py-4 border-b border-gray-200">
-                            <h3 className="text-lg font-medium text-gray-900">Search Results</h3>
+                            <h3 className="text-lg font-semibold text-gray-900">Search Results</h3>
                         </div>
-                        <div className="p-6">
-                            <div className="text-center text-gray-500 py-8">
-                                <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                                <p>Select a vehicle and click search to view all related records</p>
+                        <div className="p-12">
+                            <div className="text-center">
+                                <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 mb-6">
+                                    <svg className="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-2">Ready to Search</h3>
+                                <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                                    Select a vehicle from the dropdown or enter a plate number to view comprehensive records including trips, maintenance history, contracts, and incident reports.
+                                </p>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto text-sm">
+                                    <div className="bg-blue-50 p-4 rounded-lg">
+                                        <div className="font-medium text-blue-900">Trip Records</div>
+                                        <div className="text-blue-700">Complete journey history</div>
+                                    </div>
+                                    <div className="bg-green-50 p-4 rounded-lg">
+                                        <div className="font-medium text-green-900">Maintenance Data</div>
+                                        <div className="text-green-700">Service & repair logs</div>
+                                    </div>
+                                    <div className="bg-purple-50 p-4 rounded-lg">
+                                        <div className="font-medium text-purple-900">Business Analytics</div>
+                                        <div className="text-purple-700">Contracts & incidents</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
