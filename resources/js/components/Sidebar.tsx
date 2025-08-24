@@ -1,21 +1,23 @@
 import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface SidebarProps {
     isOpen: boolean;
     onToggle: () => void;
-    currentPage: string;
-    onPageChange: (page: string) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, currentPage, onPageChange }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
+    const navigate = useNavigate();
+    const location = useLocation();
+    
     const menuItems = [
-        { id: 'dashboard', label: 'Dashboard', icon: '🏠' },
-        { id: 'vehicle', label: 'Vehicle', icon: '🚗' },
-        { id: 'daily-trips', label: 'Daily Trips', icon: '🗺️' },
-        { id: 'maintenance', label: 'Maintenance', icon: '🔧' },
-        { id: 'contracts', label: 'Contracts', icon: '📋' },
-        { id: 'incident-report', label: 'Incident Report', icon: '⚠️' },
-        { id: 'user-management', label: 'User Management', icon: '👥' },
+        { id: 'dashboard', label: 'Dashboard', icon: '🏠', path: '/dashboard' },
+        { id: 'vehicle', label: 'Vehicle', icon: '🚗', path: '/vehicle' },
+        { id: 'daily-trips', label: 'Daily Trips', icon: '🗺️', path: '/daily-trips' },
+        { id: 'maintenance', label: 'Maintenance', icon: '🔧', path: '/maintenance' },
+        { id: 'contracts', label: 'Contracts', icon: '📋', path: '/contracts' },
+        { id: 'incident-report', label: 'Incident Report', icon: '⚠️', path: '/incident-report' },
+        { id: 'user-management', label: 'User Management', icon: '👥', path: '/user-management' },
     ];
 
     return (
@@ -39,7 +41,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, currentPage, onPage
                     <div className="flex justify-center flex-1">
                         <button
                             onClick={() => {
-                                onPageChange('dashboard');
+                                navigate('/dashboard');
                                 onToggle(); // Close sidebar on mobile after clicking logo
                             }}
                             className="hover:opacity-80 transition-opacity duration-200"
@@ -70,13 +72,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, currentPage, onPage
                             <li key={item.id}>
                                 <button
                                     onClick={() => {
-                                        onPageChange(item.id);
+                                        navigate(item.path);
                                         // Close sidebar after selection
                                         onToggle();
                                     }}
                                     className={`
                                         w-full flex items-center px-3 py-3 text-left rounded-lg transition-colors duration-200
-                                        ${currentPage === item.id 
+                                        ${location.pathname === item.path 
                                             ? 'bg-indigo-100 text-indigo-700 border-r-4 border-indigo-700' 
                                             : 'text-gray-700 hover:bg-gray-100'
                                         }

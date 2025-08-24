@@ -3,11 +3,6 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 
-// Main application route
-Route::get('/', function () {
-    return view('welcome');
-});
-
 // Test route
 Route::get('/test', function () {
     return response()->json([
@@ -96,3 +91,9 @@ Route::get('/test-trip-creation', function () {
         ], 500);
     }
 });
+
+// Catch all route for React Router (SPA)
+// This should be the last route so it doesn't interfere with API routes
+Route::get('/{any}', function () {
+    return view('welcome');
+})->where('any', '.*');

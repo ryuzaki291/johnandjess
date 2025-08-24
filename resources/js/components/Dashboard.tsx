@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import VehiclePage from './pages/Vehicle';
 import DailyTrips from './pages/DailyTrips';
@@ -78,8 +79,9 @@ interface DashboardStats {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
+    const navigate = useNavigate();
+    const location = useLocation();
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [currentPage, setCurrentPage] = useState('dashboard');
     const [activeTab, setActiveTab] = useState('dashboard'); // New state for tabs
     const [apiData, setApiData] = useState<ApiResponse | null>(null);
     const [users, setUsers] = useState<any[]>([]);
@@ -1233,22 +1235,19 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
     };
 
     const renderPageContent = () => {
-        switch (currentPage) {
-            case 'vehicle':
-                return <VehiclePage token={token} />;
-            case 'daily-trips':
-                return <DailyTrips />;
-            case 'maintenance':
-                return <Maintenance />;
-            case 'contracts':
-                return <Contracts />;
-            case 'incident-report':
-                return <IncidentReport />;
-            case 'user-management':
-                return <UserManagement token={token} />;
-            default:
-                return renderDashboardContent();
-        }
+        return (
+            <Routes>
+                <Route path="/dashboard" element={renderDashboardContent()} />
+                <Route path="/vehicle" element={<VehiclePage token={token} />} />
+                <Route path="/daily-trips" element={<DailyTrips />} />
+                <Route path="/maintenance" element={<Maintenance />} />
+                <Route path="/contracts" element={<Contracts />} />
+                <Route path="/incident-report" element={<IncidentReport />} />
+                <Route path="/user-management" element={<UserManagement token={token} />} />
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+        );
     };
 
     return (
@@ -1257,8 +1256,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
             <Sidebar 
                 isOpen={sidebarOpen} 
                 onToggle={() => setSidebarOpen(!sidebarOpen)}
-                currentPage={currentPage}
-                onPageChange={setCurrentPage}
             />
 
             {/* Main Content */}
@@ -1277,7 +1274,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                                 </svg>
                             </button>
                             <button
-                                onClick={() => setCurrentPage('dashboard')}
+                                onClick={() => navigate('/dashboard')}
                                 className="ml-4 hover:opacity-80 transition-opacity duration-200"
                                 title="Go to Dashboard"
                             >

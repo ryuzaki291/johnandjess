@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './Login';
 import Register from './Register';
 import Dashboard from './Dashboard';
@@ -97,23 +98,37 @@ const App: React.FC = () => {
     }
 
     if (user && token) {
-        return <Dashboard user={user} token={token} onLogout={handleLogout} />;
-    }
-
-    if (authView === 'register') {
         return (
-            <Register
-                onRegister={handleRegister}
-                onSwitchToLogin={() => setAuthView('login')}
-            />
+            <Router>
+                <Routes>
+                    <Route path="/*" element={<Dashboard user={user} token={token} onLogout={handleLogout} />} />
+                </Routes>
+            </Router>
         );
     }
 
     return (
-        <Login
-            onLogin={handleLogin}
-            onSwitchToRegister={() => setAuthView('register')}
-        />
+        <Router>
+            <Routes>
+                <Route 
+                    path="/register" 
+                    element={
+                        <Register
+                            onRegister={handleRegister}
+                            onSwitchToLogin={() => setAuthView('login')}
+                        />
+                    } 
+                />
+                <Route 
+                    path="/*" 
+                    element={
+                        <Login
+                            onLogin={handleLogin}
+                        />
+                    } 
+                />
+            </Routes>
+        </Router>
     );
 };
 
