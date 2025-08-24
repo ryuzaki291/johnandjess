@@ -99,13 +99,6 @@ const SortDescIcon = () => (
     </svg>
 );
 
-const MaintenanceIcon = () => (
-    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-    </svg>
-);
-
 const ChevronLeftIcon = () => (
     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -243,14 +236,8 @@ const MainMaintenanceTab: React.FC = () => {
     // Statistics calculation
     const getMaintenanceStats = () => {
         const totalRecords = mainMaintenanceRecords.length;
-        const totalAmount = mainMaintenanceRecords.reduce((sum, record) => {
-            const amount = parseFloat(String(record.amount)) || 0;
-            return sum + amount;
-        }, 0);
-        const totalQty = mainMaintenanceRecords.reduce((sum, record) => {
-            const qty = parseFloat(String(record.qty)) || 0;
-            return sum + qty;
-        }, 0);
+        const totalAmount = mainMaintenanceRecords.reduce((sum, record) => sum + (record.amount || 0), 0);
+        const totalQty = mainMaintenanceRecords.reduce((sum, record) => sum + (record.qty || 0), 0);
         const today = new Date().toDateString();
         const newToday = mainMaintenanceRecords.filter(r => new Date(r.created_at || '').toDateString() === today).length;
 
@@ -267,12 +254,11 @@ const MainMaintenanceTab: React.FC = () => {
     };
 
     const formatCurrency = (amount: number | null | undefined) => {
-        const numAmount = parseFloat(String(amount)) || 0;
-        if (isNaN(numAmount)) return '₱0.00';
+        if (!amount) return '₱0.00';
         return new Intl.NumberFormat('en-PH', {
             style: 'currency',
             currency: 'PHP'
-        }).format(numAmount);
+        }).format(amount);
     };
 
     // Function to get CSRF token
@@ -340,8 +326,8 @@ const MainMaintenanceTab: React.FC = () => {
                         remarks: record.remarks || '',
                         dateOfPms: record.date_of_pms,
                         performed: record.performed,
-                        amount: parseFloat(record.amount) || 0,
-                        qty: parseFloat(record.qty) || 0,
+                        amount: record.amount,
+                        qty: record.qty,
                         vehicle: record.vehicle,
                         created_at: record.created_at,
                         updated_at: record.updated_at
@@ -478,8 +464,8 @@ const MainMaintenanceTab: React.FC = () => {
                         remarks: result.data.remarks || '',
                         dateOfPms: result.data.date_of_pms,
                         performed: result.data.performed,
-                        amount: parseFloat(result.data.amount) || 0,
-                        qty: parseFloat(result.data.qty) || 0,
+                        amount: result.data.amount,
+                        qty: result.data.qty,
                         vehicle: result.data.vehicle,
                         created_at: result.data.created_at,
                         updated_at: result.data.updated_at
@@ -779,6 +765,7 @@ const MainMaintenanceTab: React.FC = () => {
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             <tr>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assignee</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Region</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehicle</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date PMS</th>
@@ -790,6 +777,9 @@ const MainMaintenanceTab: React.FC = () => {
                         <tbody className="bg-white divide-y divide-gray-200">
                             {currentRecords.map((record) => (
                                 <tr key={record.id}>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                        {record.assigneeName}
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {record.regionAssign}
                                     </td>
@@ -805,30 +795,25 @@ const MainMaintenanceTab: React.FC = () => {
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {formatCurrency(record.amount)}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex items-center space-x-3">
-                                            <button
-                                                onClick={() => handleView(record)}
-                                                className="inline-flex items-center p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
-                                                title="View Details"
-                                            >
-                                                <EyeIcon />
-                                            </button>
-                                            <button
-                                                onClick={() => handleEdit(record)}
-                                                className="inline-flex items-center p-2 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors duration-200"
-                                                title="Edit Record"
-                                            >
-                                                <EditIcon />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(record.id, `${record.assigneeName} - ${record.performed}`)}
-                                                className="inline-flex items-center p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
-                                                title="Delete Record"
-                                            >
-                                                <DeleteIcon />
-                                            </button>
-                                        </div>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <button
+                                            onClick={() => handleView(record)}
+                                            className="text-blue-600 hover:text-blue-900 mr-4"
+                                        >
+                                            View
+                                        </button>
+                                        <button
+                                            onClick={() => handleEdit(record)}
+                                            className="text-indigo-600 hover:text-indigo-900 mr-4"
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(record.id, `${record.assigneeName} - ${record.performed}`)}
+                                            className="text-red-600 hover:text-red-900"
+                                        >
+                                            Delete
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
@@ -886,140 +871,75 @@ const MainMaintenanceTab: React.FC = () => {
 
             {/* View Modal */}
             {showViewModal && viewRecord && (
-                <div className="fixed inset-0 bg-slate-900 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
-                    <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                        <div className="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 rounded-t-2xl">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h2 className="text-2xl font-bold text-slate-900">Maintenance Record Details</h2>
-                                    <p className="text-slate-600">Complete information for {viewRecord.supplierName || 'Maintenance Record'}</p>
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                    <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-medium text-gray-900">
+                                Maintenance Record Details
+                            </h3>
+                            <button
+                                onClick={() => setShowViewModal(false)}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 className="font-medium text-gray-900 mb-3">Basic Information</h4>
+                                <div className="space-y-2">
+                                    <p><span className="font-medium">Assignee:</span> {viewRecord.assigneeName}</p>
+                                    <p><span className="font-medium">Region:</span> {viewRecord.regionAssign}</p>
+                                    <p><span className="font-medium">Supplier:</span> {viewRecord.supplierName}</p>
+                                    <p><span className="font-medium">Vehicle Details:</span> {viewRecord.vehicleDetails}</p>
                                 </div>
-                                <button
-                                    onClick={() => setShowViewModal(false)}
-                                    className="p-2 hover:bg-slate-100 rounded-lg transition-colors duration-200"
-                                >
-                                    <CloseIcon />
-                                </button>
+                            </div>
+                            
+                            <div>
+                                <h4 className="font-medium text-gray-900 mb-3">Service Information</h4>
+                                <div className="space-y-2">
+                                    <p><span className="font-medium">Plate Number:</span> {viewRecord.plateNumber}</p>
+                                    <p><span className="font-medium">Date PMS:</span> {viewRecord.dateOfPms}</p>
+                                    <p><span className="font-medium">Performed:</span> {viewRecord.performed}</p>
+                                    <p><span className="font-medium">Odometer:</span> {viewRecord.odometerRecord}</p>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4 className="font-medium text-gray-900 mb-3">Financial Details</h4>
+                                <div className="space-y-2">
+                                    <p><span className="font-medium">Amount:</span> {formatCurrency(viewRecord.amount)}</p>
+                                    <p><span className="font-medium">Quantity:</span> {viewRecord.qty}</p>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4 className="font-medium text-gray-900 mb-3">Additional Information</h4>
+                                <div className="space-y-2">
+                                    <p><span className="font-medium">Remarks:</span> {viewRecord.remarks || 'No remarks'}</p>
+                                    <p><span className="font-medium">Created:</span> {formatDate(viewRecord.created_at)}</p>
+                                    <p><span className="font-medium">Updated:</span> {formatDate(viewRecord.updated_at)}</p>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="p-6 space-y-8">
-                            {/* Record Overview */}
-                            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6">
-                                <div className="flex items-center mb-4">
-                                    <div className="p-3 bg-blue-100 rounded-lg">
-                                        <MaintenanceIcon />
-                                    </div>
-                                    <div className="ml-4">
-                                        <h3 className="text-xl font-bold text-slate-900">{viewRecord.supplierName || 'Unnamed Supplier'}</h3>
-                                        <p className="text-slate-600">{viewRecord.performed || 'No service performed'} • {viewRecord.plateNumber || 'No vehicle'}</p>
-                                    </div>
-                                    <div className="ml-auto">
-                                        <span className="px-4 py-2 rounded-full text-sm font-semibold bg-green-100 text-green-800">
-                                            {formatCurrency(viewRecord.amount)}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Record Information Grid */}
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                <div className="space-y-6">
-                                    <div className="bg-white border border-slate-200 rounded-xl p-6">
-                                        <h4 className="text-lg font-semibold text-slate-900 mb-4">Basic Information</h4>
-                                        <div className="space-y-4">
-                                            <div className="flex justify-between">
-                                                <span className="text-slate-600 font-medium">Supplier:</span>
-                                                <span className="text-slate-900 font-semibold">{viewRecord.supplierName || 'N/A'}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-slate-600 font-medium">Region:</span>
-                                                <span className="text-slate-900">{viewRecord.regionAssign || 'N/A'}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-slate-600 font-medium">Vehicle:</span>
-                                                <span className="text-slate-900">{viewRecord.plateNumber || 'N/A'}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-slate-600 font-medium">Vehicle Details:</span>
-                                                <span className="text-slate-900">{viewRecord.vehicleDetails || 'N/A'}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-slate-600 font-medium">Odometer:</span>
-                                                <span className="text-slate-900">{viewRecord.odometerRecord || 'N/A'}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-white border border-slate-200 rounded-xl p-6">
-                                        <h4 className="text-lg font-semibold text-slate-900 mb-4">Service Information</h4>
-                                        <div className="space-y-4">
-                                            <div className="flex justify-between">
-                                                <span className="text-slate-600 font-medium">Date PMS:</span>
-                                                <span className="text-slate-900">{formatDate(viewRecord.dateOfPms)}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-slate-600 font-medium">Performed:</span>
-                                                <span className="text-slate-900">{viewRecord.performed || 'N/A'}</span>
-                                            </div>
-                                            <div>
-                                                <span className="text-slate-600 font-medium block mb-1">Remarks:</span>
-                                                <span className="text-slate-900">{viewRecord.remarks || 'No remarks'}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-6">
-                                    <div className="bg-white border border-slate-200 rounded-xl p-6">
-                                        <h4 className="text-lg font-semibold text-slate-900 mb-4">Financial Details</h4>
-                                        <div className="space-y-4">
-                                            <div className="flex justify-between">
-                                                <span className="text-slate-600 font-medium">Amount:</span>
-                                                <span className="text-green-600 font-semibold">{formatCurrency(viewRecord.amount)}</span>
-                                            </div>
-                                            <div className="flex justify-between border-t pt-2">
-                                                <span className="text-slate-600 font-medium">Quantity:</span>
-                                                <span className="text-slate-900 font-bold text-lg">{viewRecord.qty || 0}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-white border border-slate-200 rounded-xl p-6">
-                                        <h4 className="text-lg font-semibold text-slate-900 mb-4">Record Information</h4>
-                                        <div className="space-y-4">
-                                            <div className="flex justify-between">
-                                                <span className="text-slate-600 font-medium">Created:</span>
-                                                <span className="text-slate-900">{formatDate(viewRecord.created_at)}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-slate-600 font-medium">Last Updated:</span>
-                                                <span className="text-slate-900">{formatDate(viewRecord.updated_at)}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Action Buttons */}
-                            <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-slate-200">
-                                <button
-                                    onClick={() => {
-                                        setShowViewModal(false);
-                                        handleEdit(viewRecord);
-                                    }}
-                                    className="flex-1 inline-flex items-center justify-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200"
-                                >
-                                    <EditIcon />
-                                    <span className="ml-2">Edit Record</span>
-                                </button>
-                                <button
-                                    onClick={() => setShowViewModal(false)}
-                                    className="flex-1 inline-flex items-center justify-center px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors duration-200"
-                                >
-                                    Close
-                                </button>
-                            </div>
+                        <div className="flex justify-end space-x-3 pt-6 mt-6 border-t">
+                            <button
+                                onClick={() => {
+                                    setShowViewModal(false);
+                                    handleEdit(viewRecord);
+                                }}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                            >
+                                Edit Record
+                            </button>
+                            <button
+                                onClick={() => setShowViewModal(false)}
+                                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                            >
+                                Close
+                            </button>
                         </div>
                     </div>
                 </div>
