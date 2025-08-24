@@ -213,8 +213,19 @@ const DailyTrips: React.FC = () => {
     // Statistics calculation
     const getTripStats = () => {
         const totalTrips = trips.length;
-        const totalRevenue = trips.reduce((sum, trip) => sum + (trip.total_amount || 0), 0);
-        const totalBilled = trips.reduce((sum, trip) => sum + (trip.amount_billed || 0), 0);
+        
+        // Fix for Total Revenue - ensure we're working with numbers
+        const totalRevenue = trips.reduce((sum, trip) => {
+            const amount = parseFloat(trip.total_amount?.toString() || '0');
+            return sum + (isNaN(amount) ? 0 : amount);
+        }, 0);
+        
+        // Fix for Amount Billed - ensure we're working with numbers
+        const totalBilled = trips.reduce((sum, trip) => {
+            const amount = parseFloat(trip.amount_billed?.toString() || '0');
+            return sum + (isNaN(amount) ? 0 : amount);
+        }, 0);
+        
         const today = new Date().toDateString();
         const newToday = trips.filter(t => new Date(t.created_at).toDateString() === today).length;
 
@@ -231,7 +242,7 @@ const DailyTrips: React.FC = () => {
     };
 
     const formatCurrency = (amount: number | null | undefined) => {
-        if (!amount) return '₱0.00';
+        if (!amount || isNaN(amount)) return '₱0.00';
         return new Intl.NumberFormat('en-PH', {
             style: 'currency',
             currency: 'PHP'
