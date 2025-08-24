@@ -42,6 +42,41 @@ interface SearchResults {
     };
 }
 
+interface DashboardStats {
+    overview: {
+        total_vehicles: number;
+        total_users: number;
+        total_daily_trips: number;
+        total_incident_reports: number;
+        total_contracts: number;
+        total_maintenance_records: number;
+        recent_trips: number;
+        pending_incidents: number;
+        active_contracts: number;
+        recent_maintenance: number;
+    };
+    vehicles_by_status: Record<string, number>;
+    incidents_by_severity: Record<string, number>;
+    top_vehicles: Array<{
+        plate_number: string;
+        trip_count: number;
+        vehicle: Vehicle;
+    }>;
+    recent_activities: Array<{
+        type: string;
+        title: string;
+        description: string;
+        date: string;
+        user: string;
+    }>;
+    monthly_trends: Array<{
+        month: string;
+        trips: number;
+        incidents: number;
+        maintenance: number;
+    }>;
+}
+
 const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState('dashboard');
@@ -50,6 +85,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
     const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
+    const [statsLoading, setStatsLoading] = useState(false);
+    const [statsError, setStatsError] = useState<string | null>(null);
     
     // Search functionality state
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -57,6 +95,34 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
     const [searchResults, setSearchResults] = useState<SearchResults | null>(null);
     const [searchLoading, setSearchLoading] = useState(false);
     const [searchError, setSearchError] = useState<string | null>(null);
+
+    // Fetch dashboard statistics
+    const fetchDashboardStats = async () => {
+        setStatsLoading(true);
+        setStatsError(null);
+        try {
+            const response = await fetch('/api/dashboard/statistics', {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success) {
+                    setDashboardStats(result.data);
+                } else {
+                    setStatsError(result.message || 'Failed to load dashboard data');
+                }
+            } else {
+                setStatsError(`Failed to load dashboard data (${response.status})`);
+            }
+        } catch (error) {
+            console.error('Failed to fetch dashboard statistics:', error);
+            setStatsError('Failed to connect to server');
+        } finally {
+            setStatsLoading(false);
+        }
+    };
 
     useEffect(() => {
         // Fetch API test data
@@ -87,6 +153,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                 setError('Failed to fetch users');
                 setLoading(false);
             });
+
+        // Fetch dashboard statistics
+        fetchDashboardStats();
     }, [token]);
 
     // Fetch vehicles for dropdown
@@ -221,108 +290,296 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
     };
 
     const renderDashboardTab = () => {
+        const stats = dashboardStats?.overview;
+        
         return (
             <>
                 {/* Header */}
-                <div className="mb-6">
-                    <h1 className="text-3xl font-bold text-gray-900">
-                        Welcome back, {user.name}!
-                    </h1>
-                    <p className="text-gray-600">John & Jess Transport Management System</p>
+                <div className="mb-6 flex justify-between items-center">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900">
+                            Welcome back, {user.name}!
+                        </h1>
+                        <p className="text-gray-600">John & Jess Transport Management System</p>
+                    </div>
+                    <button
+                        onClick={fetchDashboardStats}
+                        disabled={statsLoading}
+                        className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md font-medium flex items-center space-x-2"
+                    >
+                        <svg className={`w-4 h-4 ${statsLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        <span>{statsLoading ? 'Refreshing...' : 'Refresh'}</span>
+                    </button>
                 </div>
+
+                {/* Loading State */}
+                {statsLoading && (
+                    <div className="flex items-center justify-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                        <span className="ml-2 text-gray-600">Loading dashboard data...</span>
+                    </div>
+                )}
+
+                {/* Error State */}
+                {statsError && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                        <div className="flex">
+                            <div className="flex-shrink-0">
+                                <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.728-.833-2.498 0L5.732 15.5c-.77.833.192 2.5 1.732 2.5z" />
+                                </svg>
+                            </div>
+                            <div className="ml-3">
+                                <h3 className="text-sm font-medium text-red-800">Dashboard Error</h3>
+                                <p className="text-sm text-red-700 mt-1">{statsError}</p>
+                                <button
+                                    onClick={fetchDashboardStats}
+                                    className="mt-2 text-sm text-red-800 underline hover:text-red-900"
+                                >
+                                    Try again
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                    <div className="bg-white rounded-lg shadow p-6">
+                    <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6">
                         <div className="flex items-center">
                             <div className="p-3 rounded-full bg-blue-100">
                                 <span className="text-2xl">🚗</span>
                             </div>
                             <div className="ml-4">
                                 <p className="text-sm font-medium text-gray-500">Total Vehicles</p>
-                                <p className="text-2xl font-bold text-gray-900">12</p>
+                                <p className="text-2xl font-bold text-gray-900">
+                                    {stats ? stats.total_vehicles.toLocaleString() : '-'}
+                                </p>
                             </div>
                         </div>
                     </div>
                     
-                    <div className="bg-white rounded-lg shadow p-6">
+                    <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6">
                         <div className="flex items-center">
                             <div className="p-3 rounded-full bg-green-100">
                                 <span className="text-2xl">🗺️</span>
                             </div>
                             <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-500">Active Trips</p>
-                                <p className="text-2xl font-bold text-gray-900">8</p>
+                                <p className="text-sm font-medium text-gray-500">Recent Trips (30 days)</p>
+                                <p className="text-2xl font-bold text-gray-900">
+                                    {stats ? stats.recent_trips.toLocaleString() : '-'}
+                                </p>
                             </div>
                         </div>
                     </div>
                     
-                    <div className="bg-white rounded-lg shadow p-6">
+                    <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6">
                         <div className="flex items-center">
                             <div className="p-3 rounded-full bg-yellow-100">
                                 <span className="text-2xl">⚠️</span>
                             </div>
                             <div className="ml-4">
                                 <p className="text-sm font-medium text-gray-500">Pending Incidents</p>
-                                <p className="text-2xl font-bold text-gray-900">2</p>
+                                <p className="text-2xl font-bold text-gray-900">
+                                    {stats ? stats.pending_incidents.toLocaleString() : '-'}
+                                </p>
                             </div>
                         </div>
                     </div>
                     
-                    <div className="bg-white rounded-lg shadow p-6">
+                    <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6">
                         <div className="flex items-center">
                             <div className="p-3 rounded-full bg-purple-100">
                                 <span className="text-2xl">👥</span>
                             </div>
                             <div className="ml-4">
                                 <p className="text-sm font-medium text-gray-500">Total Users</p>
-                                <p className="text-2xl font-bold text-gray-900">{users.length}</p>
+                                <p className="text-2xl font-bold text-gray-900">
+                                    {stats ? stats.total_users.toLocaleString() : users.length}
+                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* User Info Card */}
-                <div className="bg-white overflow-hidden shadow rounded-lg mb-6">
-                    <div className="px-4 py-5 sm:p-6">
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">Your Profile</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <p className="text-sm font-medium text-gray-500">Name</p>
-                                <p className="text-lg text-gray-900">{user.name}</p>
+                {/* Secondary Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                    <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6">
+                        <div className="flex items-center">
+                            <div className="p-3 rounded-full bg-indigo-100">
+                                <span className="text-xl">📋</span>
                             </div>
-                            <div>
-                                <p className="text-sm font-medium text-gray-500">Email</p>
-                                <p className="text-lg text-gray-900">{user.email}</p>
-                            </div>
-                            <div>
-                                <p className="text-sm font-medium text-gray-500">Member since</p>
-                                <p className="text-lg text-gray-900">
-                                    {new Date(user.created_at).toLocaleDateString()}
+                            <div className="ml-4">
+                                <p className="text-sm font-medium text-gray-500">Total Daily Trips</p>
+                                <p className="text-xl font-bold text-gray-900">
+                                    {stats ? stats.total_daily_trips.toLocaleString() : '-'}
                                 </p>
                             </div>
-                            <div>
-                                <p className="text-sm font-medium text-gray-500">Account ID</p>
-                                <p className="text-lg text-gray-900">#{user.id}</p>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6">
+                        <div className="flex items-center">
+                            <div className="p-3 rounded-full bg-orange-100">
+                                <span className="text-xl">🔧</span>
+                            </div>
+                            <div className="ml-4">
+                                <p className="text-sm font-medium text-gray-500">Maintenance Records</p>
+                                <p className="text-xl font-bold text-gray-900">
+                                    {stats ? stats.total_maintenance_records.toLocaleString() : '-'}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6">
+                        <div className="flex items-center">
+                            <div className="p-3 rounded-full bg-teal-100">
+                                <span className="text-xl">📄</span>
+                            </div>
+                            <div className="ml-4">
+                                <p className="text-sm font-medium text-gray-500">Active Contracts</p>
+                                <p className="text-xl font-bold text-gray-900">
+                                    {stats ? stats.active_contracts.toLocaleString() : '-'}
+                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* API Status Card */}
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                    <div className="px-4 py-5 sm:p-6">
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">System Status</h3>
-                        {apiData && (
-                            <div className="text-green-600 bg-green-50 p-4 rounded-lg">
-                                <p className="font-semibold">✅ {apiData.message}</p>
-                                <p className="text-sm text-gray-600 mt-2">
-                                    Database: {apiData.database} | Time: {new Date(apiData.timestamp).toLocaleString()}
-                                </p>
-                            </div>
-                        )}
+                {/* Two Column Layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    {/* Recent Activities */}
+                    <div className="bg-white rounded-lg shadow-md">
+                        <div className="px-6 py-4 border-b border-gray-200">
+                            <h3 className="text-lg font-semibold text-gray-900">Recent Activities</h3>
+                        </div>
+                        <div className="p-6">
+                            {dashboardStats?.recent_activities.length ? (
+                                <div className="space-y-4">
+                                    {dashboardStats.recent_activities.slice(0, 6).map((activity, index) => (
+                                        <div key={index} className="flex items-start space-x-3">
+                                            <div className={`flex-shrink-0 w-2 h-2 rounded-full mt-2 ${
+                                                activity.type === 'vehicle' ? 'bg-blue-500' :
+                                                activity.type === 'incident' ? 'bg-red-500' :
+                                                'bg-green-500'
+                                            }`} />
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium text-gray-900 truncate">
+                                                    {activity.title}
+                                                </p>
+                                                <p className="text-sm text-gray-500 truncate">
+                                                    {activity.description}
+                                                </p>
+                                                <p className="text-xs text-gray-400">
+                                                    {new Date(activity.date).toLocaleDateString()} • {activity.user}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center text-gray-500 py-8">
+                                    <p>No recent activities</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Top Vehicles */}
+                    <div className="bg-white rounded-lg shadow-md">
+                        <div className="px-6 py-4 border-b border-gray-200">
+                            <h3 className="text-lg font-semibold text-gray-900">Most Active Vehicles</h3>
+                        </div>
+                        <div className="p-6">
+                            {dashboardStats?.top_vehicles.length ? (
+                                <div className="space-y-4">
+                                    {dashboardStats.top_vehicles.map((vehicle, index) => (
+                                        <div key={vehicle.plate_number} className="flex items-center justify-between">
+                                            <div className="flex items-center space-x-3">
+                                                <span className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-sm font-medium">
+                                                    {index + 1}
+                                                </span>
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-900">
+                                                        {vehicle.plate_number}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500">
+                                                        {vehicle.vehicle?.vehicle_type} - {vehicle.vehicle?.vehicle_brand}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-sm font-medium text-gray-900">
+                                                    {vehicle.trip_count} trips
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center text-gray-500 py-8">
+                                    <p>No trip data available</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
+
+                {/* Monthly Trends Chart */}
+                {dashboardStats?.monthly_trends && (
+                    <div className="bg-white rounded-lg shadow-md mb-6">
+                        <div className="px-6 py-4 border-b border-gray-200">
+                            <h3 className="text-lg font-semibold text-gray-900">Monthly Trends (Last 6 Months)</h3>
+                        </div>
+                        <div className="p-6">
+                            <div className="space-y-4">
+                                {dashboardStats.monthly_trends.map((month, index) => (
+                                    <div key={index} className="border-b border-gray-100 pb-4 last:border-b-0">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <h4 className="font-medium text-gray-900">{month.month}</h4>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-4 text-sm">
+                                            <div className="bg-blue-50 p-3 rounded-lg">
+                                                <p className="text-blue-600 font-medium">Trips</p>
+                                                <p className="text-xl font-bold text-blue-900">{month.trips}</p>
+                                            </div>
+                                            <div className="bg-red-50 p-3 rounded-lg">
+                                                <p className="text-red-600 font-medium">Incidents</p>
+                                                <p className="text-xl font-bold text-red-900">{month.incidents}</p>
+                                            </div>
+                                            <div className="bg-green-50 p-3 rounded-lg">
+                                                <p className="text-green-600 font-medium">Maintenance</p>
+                                                <p className="text-xl font-bold text-green-900">{month.maintenance}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Vehicle Status Distribution */}
+                {dashboardStats?.vehicles_by_status && Object.keys(dashboardStats.vehicles_by_status).length > 0 && (
+                    <div className="bg-white rounded-lg shadow-md">
+                        <div className="px-6 py-4 border-b border-gray-200">
+                            <h3 className="text-lg font-semibold text-gray-900">Vehicle Status Distribution</h3>
+                        </div>
+                        <div className="p-6">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {Object.entries(dashboardStats.vehicles_by_status).map(([status, count]) => (
+                                    <div key={status} className="text-center p-4 border border-gray-200 rounded-lg">
+                                        <p className="text-2xl font-bold text-gray-900">{count}</p>
+                                        <p className="text-sm text-gray-500 capitalize">{status || 'Unknown'}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
             </>
         );
     };

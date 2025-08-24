@@ -11,6 +11,7 @@ use App\Http\Controllers\MainMaintenanceController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\IncidentReportController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\DashboardController;
 
 Route::get('/test', function () {
     return response()->json([
@@ -60,6 +61,10 @@ Route::post('/incident-reports/{id}/remove-file', [IncidentReportController::cla
 // Search routes
 Route::get('/search/vehicles', [SearchController::class, 'getVehicles']);
 Route::post('/search/plate-number', [SearchController::class, 'searchByPlateNumber']);
+
+// Dashboard routes
+Route::get('/dashboard/statistics', [DashboardController::class, 'statistics']);
+Route::get('/dashboard/vehicle-overview', [DashboardController::class, 'vehicleOverview']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
