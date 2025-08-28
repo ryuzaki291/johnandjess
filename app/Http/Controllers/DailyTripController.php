@@ -44,7 +44,9 @@ class DailyTripController extends Controller
             $validated = $request->validate([
                 'month_year' => 'nullable|string|max:255',
                 'department' => 'nullable|string|max:255',
-                'plate_number' => 'nullable|string|exists:vehicles,plate_number',
+                'plate_number' => 'nullable|string|max:255',
+                'vehicle_owner' => 'nullable|string|max:255',
+                'vehicle_brand' => 'nullable|string|max:255',
                 'customer_name' => 'nullable|string|max:255',
                 'destination' => 'nullable|string|max:255',
                 'date_from' => 'nullable|date',
@@ -122,7 +124,9 @@ class DailyTripController extends Controller
             $validated = $request->validate([
                 'month_year' => 'nullable|string|max:255',
                 'department' => 'nullable|string|max:255',
-                'plate_number' => 'nullable|string|exists:vehicles,plate_number',
+                'plate_number' => 'nullable|string|max:255',
+                'vehicle_owner' => 'nullable|string|max:255',
+                'vehicle_brand' => 'nullable|string|max:255',
                 'customer_name' => 'nullable|string|max:255',
                 'destination' => 'nullable|string|max:255',
                 'date_from' => 'nullable|date',

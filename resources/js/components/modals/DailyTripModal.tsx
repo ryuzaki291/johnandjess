@@ -1,25 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { DailyTrip, DailyTripFormData, Vehicle } from '../../types/DailyTrip';
+import { DailyTrip, DailyTripFormData } from '../../types/DailyTrip';
 
 interface DailyTripModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSubmit: (data: DailyTripFormData) => void;
     editingTrip?: DailyTrip | null;
-    vehicles: Vehicle[];
 }
 
 const DailyTripModal: React.FC<DailyTripModalProps> = ({
     isOpen,
     onClose,
     onSubmit,
-    editingTrip,
-    vehicles
+    editingTrip
 }) => {
     const [formData, setFormData] = useState<DailyTripFormData>({
         month_year: '',
         department: '',
         plate_number: '',
+        vehicle_owner: '',
+        vehicle_brand: '',
         customer_name: '',
         destination: '',
         date_from: '',
@@ -43,6 +43,8 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                 month_year: editingTrip.month_year || '',
                 department: editingTrip.department || '',
                 plate_number: editingTrip.plate_number || '',
+                vehicle_owner: editingTrip.vehicle_owner || editingTrip.vehicle?.vehicle_owner || '',
+                vehicle_brand: editingTrip.vehicle_brand || editingTrip.vehicle?.vehicle_brand || '',
                 customer_name: editingTrip.customer_name || '',
                 destination: editingTrip.destination || '',
                 date_from: editingTrip.date_from || '',
@@ -62,6 +64,8 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                 month_year: '',
                 department: '',
                 plate_number: '',
+                vehicle_owner: '',
+                vehicle_brand: '',
                 customer_name: '',
                 destination: '',
                 date_from: '',
@@ -111,11 +115,6 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
 
         onSubmit(processedData);
     };
-
-    const selectedVehicle = vehicles.find(v => v.plate_number === formData.plate_number);
-
-    console.log('Vehicles in modal:', vehicles);
-    console.log('Selected vehicle:', selectedVehicle);
 
     if (!isOpen) return null;
 
@@ -180,50 +179,53 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Vehicle (Plate Number)
                             </label>
-                            <select
+                            <input
+                                type="text"
                                 name="plate_number"
                                 value={formData.plate_number}
                                 onChange={handleInputChange}
                                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="">Select Vehicle</option>
-                                {vehicles.map(vehicle => (
-                                    <option key={vehicle.plate_number} value={vehicle.plate_number}>
-                                        {vehicle.plate_number} - {vehicle.vehicle_brand}
-                                    </option>
-                                ))}
-                            </select>
+                                placeholder="Enter plate number"
+                            />
                             {errors.plate_number && (
                                 <p className="text-red-500 text-xs mt-1">{errors.plate_number[0]}</p>
                             )}
                         </div>
 
-                        {/* Vehicle Owner (Read-only) */}
+                        {/* Vehicle Owner */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Vehicle Owner
                             </label>
                             <input
                                 type="text"
-                                value={selectedVehicle?.vehicle_owner || ''}
-                                readOnly
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-gray-600"
-                                placeholder="Select vehicle first"
+                                name="vehicle_owner"
+                                value={formData.vehicle_owner}
+                                onChange={handleInputChange}
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Enter vehicle owner"
                             />
+                            {errors.vehicle_owner && (
+                                <p className="text-red-500 text-xs mt-1">{errors.vehicle_owner[0]}</p>
+                            )}
                         </div>
 
-                        {/* Unit/Brand (Read-only) */}
+                        {/* Unit/Brand */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Unit/Brand
                             </label>
                             <input
                                 type="text"
-                                value={selectedVehicle?.vehicle_brand || ''}
-                                readOnly
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-gray-600"
-                                placeholder="Select vehicle first"
+                                name="vehicle_brand"
+                                value={formData.vehicle_brand}
+                                onChange={handleInputChange}
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Enter vehicle brand"
                             />
+                            {errors.vehicle_brand && (
+                                <p className="text-red-500 text-xs mt-1">{errors.vehicle_brand[0]}</p>
+                            )}
                         </div>
 
                         {/* Customer Name */}

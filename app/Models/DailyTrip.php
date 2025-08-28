@@ -16,6 +16,8 @@ class DailyTrip extends Model
         'month_year',
         'department',
         'plate_number',
+        'vehicle_owner',
+        'vehicle_brand',
         'customer_name',
         'destination',
         'date_from',

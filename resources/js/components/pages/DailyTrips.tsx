@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { DailyTrip, DailyTripFormData, Vehicle } from '../../types/DailyTrip';
+import { DailyTrip, DailyTripFormData } from '../../types/DailyTrip';
 import DailyTripModal from '../modals/DailyTripModal';
 
 // Helper function to get CSRF token
@@ -103,7 +103,6 @@ const SearchIcon = () => (
 
 const DailyTrips: React.FC = () => {
     const [trips, setTrips] = useState<DailyTrip[]>([]);
-    const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -127,7 +126,6 @@ const DailyTrips: React.FC = () => {
         }
         setIsAuthenticated(true);
         fetchTrips();
-        fetchVehicles();
     }, []);
 
     const handleView = (trip: DailyTrip) => {
@@ -316,55 +314,6 @@ const DailyTrips: React.FC = () => {
             });
         } finally {
             setLoading(false);
-        }
-    };
-
-    const fetchVehicles = async () => {
-        try {
-            const token = localStorage.getItem('auth_token');
-            if (!token) {
-                console.error('No authentication token found');
-                return;
-            }
-
-            console.log('Fetching vehicles with token: Token exists');
-            
-            const response = await fetch('/api/vehicles', {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-
-            console.log('Vehicles API response status:', response.status);
-            
-            if (response.ok) {
-                const data = await response.json();
-                console.log('Raw vehicles data received:', data);
-                
-                // The VehicleController returns vehicles in 'vehicles' property, not 'data'
-                const vehiclesData = data.vehicles || [];
-                console.log('Extracted vehicles array:', vehiclesData);
-                
-                const formattedVehicles = vehiclesData.map((vehicle: any) => ({
-                    plate_number: vehicle.plate_number,
-                    vehicle_owner: vehicle.vehicle_owner,
-                    vehicle_brand: vehicle.vehicle_brand
-                }));
-                
-                console.log('Final formatted vehicles:', formattedVehicles);
-                setVehicles(formattedVehicles);
-            } else if (response.status === 401) {
-                console.error('Authentication failed while fetching vehicles');
-                setIsAuthenticated(false);
-                localStorage.removeItem('auth_token');
-                localStorage.removeItem('auth_user');
-            } else {
-                const errorData = await response.text();
-                console.error('Failed to fetch vehicles. Status:', response.status, 'Error:', errorData);
-            }
-        } catch (error) {
-            console.error('Error fetching vehicles:', error);
         }
     };
 
@@ -1479,7 +1428,6 @@ const DailyTrips: React.FC = () => {
                     handleCreateTrip
                 }
                 editingTrip={editingTrip}
-                vehicles={vehicles}
             />
             </div>
         </div>

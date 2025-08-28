@@ -9,6 +9,8 @@ export interface DailyTrip {
     month_year?: string;
     department?: string;
     plate_number?: string;
+    vehicle_owner?: string;
+    vehicle_brand?: string;
     customer_name?: string;
     destination?: string;
     date_from?: string;
@@ -31,6 +33,8 @@ export interface DailyTripFormData {
     month_year?: string;
     department?: string;
     plate_number?: string;
+    vehicle_owner?: string;
+    vehicle_brand?: string;
     customer_name?: string;
     destination?: string;
     date_from?: string;
