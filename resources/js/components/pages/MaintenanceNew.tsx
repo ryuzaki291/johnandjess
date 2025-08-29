@@ -6,6 +6,7 @@ interface Vehicle {
     plate_number: string;
     vehicle_type: string;
     vehicle_brand: string;
+    vehicle_status?: string;
 }
 
 interface DriverMaintenanceRecord {
@@ -1313,6 +1314,7 @@ const MaintenanceNew: React.FC = () => {
                                                 {vehicles.map((vehicle) => (
                                                     <option key={vehicle.plate_number} value={vehicle.plate_number}>
                                                         {vehicle.plate_number} - {vehicle.vehicle_brand} {vehicle.vehicle_type}
+                                                        {vehicle.vehicle_status && vehicle.vehicle_status !== 'active' && ` (${vehicle.vehicle_status.toUpperCase()})`}
                                                     </option>
                                                 ))}
                                             </select>

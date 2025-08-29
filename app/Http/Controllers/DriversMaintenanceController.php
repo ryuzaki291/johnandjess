@@ -40,8 +40,7 @@ class DriversMaintenanceController extends Controller
     public function getVehicles(): JsonResponse
     {
         try {
-            $vehicles = \App\Models\Vehicle::select('plate_number', 'vehicle_type', 'vehicle_brand')
-                ->where('vehicle_status', 'active')
+            $vehicles = \App\Models\Vehicle::select('plate_number', 'vehicle_type', 'vehicle_brand', 'vehicle_status')
                 ->orderBy('plate_number')
                 ->get();
 

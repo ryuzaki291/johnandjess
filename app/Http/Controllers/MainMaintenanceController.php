@@ -212,7 +212,7 @@ class MainMaintenanceController extends Controller
     public function getVehicles()
     {
         try {
-            $vehicles = Vehicle::select('plate_number', 'vehicle_type', 'vehicle_brand')->get();
+            $vehicles = Vehicle::select('plate_number', 'vehicle_type', 'vehicle_brand', 'vehicle_status')->get();
             
             return response()->json([
                 'success' => true,
