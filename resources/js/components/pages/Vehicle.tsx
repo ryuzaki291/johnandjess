@@ -100,6 +100,7 @@ interface Vehicle {
     vehicle_owner: string | null;
     vehicle_owner_address: string | null;
     vehicle_brand: string | null;
+    company_name: string | null;
     vehicle_status: string | null;
     add_date_in_company: string | null;
     creator: number | null;
@@ -119,6 +120,7 @@ interface VehicleFormData {
     vehicle_owner: string;
     vehicle_owner_address: string;
     vehicle_brand: string;
+    company_name: string;
     vehicle_status: string;
     add_date_in_company: string;
     creation_date: string;
@@ -143,6 +145,7 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
         vehicle_owner: '',
         vehicle_owner_address: '',
         vehicle_brand: '',
+        company_name: '',
         vehicle_status: 'active',
         add_date_in_company: '',
         creation_date: new Date().toISOString().split('T')[0]
@@ -232,6 +235,7 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
             vehicle_owner: '',
             vehicle_owner_address: '',
             vehicle_brand: '',
+            company_name: '',
             vehicle_status: 'active',
             add_date_in_company: '',
             creation_date: new Date().toISOString().split('T')[0]
@@ -249,6 +253,7 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
             vehicle_owner: vehicle.vehicle_owner || '',
             vehicle_owner_address: vehicle.vehicle_owner_address || '',
             vehicle_brand: vehicle.vehicle_brand || '',
+            company_name: vehicle.company_name || '',
             vehicle_status: vehicle.vehicle_status || 'active',
             add_date_in_company: vehicle.add_date_in_company || '',
             creation_date: vehicle.creation_date || ''
@@ -747,6 +752,9 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
                                     <div>
                                         <h3 className="text-lg font-bold text-slate-900">{vehicle.plate_number}</h3>
                                         <p className="text-sm text-slate-500">{vehicle.vehicle_type || 'Unknown Type'} • {vehicle.vehicle_brand || 'Unknown Brand'}</p>
+                                        {vehicle.company_name && (
+                                            <p className="text-sm text-blue-600 font-medium">{vehicle.company_name}</p>
+                                        )}
                                     </div>
                                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(vehicle.vehicle_status)}`}>
                                         {vehicle.vehicle_status || 'Unknown'}
@@ -879,6 +887,9 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
                                             <div>
                                                 <div className="text-sm font-semibold text-slate-900">{vehicle.plate_number}</div>
                                                 <div className="text-sm text-slate-500">{vehicle.vehicle_type || 'Unknown Type'} • {vehicle.vehicle_brand || 'Unknown Brand'}</div>
+                                                {vehicle.company_name && (
+                                                    <div className="text-sm text-blue-600 font-medium">{vehicle.company_name}</div>
+                                                )}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
@@ -1108,6 +1119,12 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
                                                     <span className="text-slate-600 font-medium">Brand:</span>
                                                     <span className="text-slate-900">{viewVehicle.vehicle_brand || 'Not specified'}</span>
                                                 </div>
+                                                {viewVehicle.company_name && (
+                                                    <div className="flex justify-between">
+                                                        <span className="text-slate-600 font-medium">Company:</span>
+                                                        <span className="text-slate-900">{viewVehicle.company_name}</span>
+                                                    </div>
+                                                )}
                                                 <div className="flex justify-between">
                                                     <span className="text-slate-600 font-medium">Status:</span>
                                                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(viewVehicle.vehicle_status)}`}>
@@ -1276,6 +1293,25 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
                                                 />
                                                 {formErrors.vehicle_brand && (
                                                     <p className="mt-2 text-sm text-red-600">{formErrors.vehicle_brand[0]}</p>
+                                                )}
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-semibold text-slate-700 mb-2">Company Name</label>
+                                                <select
+                                                    name="company_name"
+                                                    value={formData.company_name}
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                                                >
+                                                    <option value="">Select Company</option>
+                                                    <option value="DITO TELECOMMUNITY CORPORATION">DITO TELECOMMUNITY CORPORATION</option>
+                                                    <option value="CHINA COMMUNICATION SERVICES PHILIPPINES CORPORATION">CHINA COMMUNICATION SERVICES PHILIPPINES CORPORATION</option>
+                                                    <option value="FUTURENET AND TECHNOLOGY CORPORATION">FUTURENET AND TECHNOLOGY CORPORATION</option>
+                                                    <option value="BESTWORLD ENGINEERING SDN BHD">BESTWORLD ENGINEERING SDN BHD</option>
+                                                </select>
+                                                {formErrors.company_name && (
+                                                    <p className="mt-2 text-sm text-red-600">{formErrors.company_name[0]}</p>
                                                 )}
                                             </div>
 

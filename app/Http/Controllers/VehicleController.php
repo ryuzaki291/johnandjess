@@ -42,6 +42,7 @@ class VehicleController extends Controller
             'vehicle_owner' => 'nullable|string|max:255',
             'vehicle_owner_address' => 'nullable|string',
             'vehicle_brand' => 'nullable|string|max:100',
+            'company_name' => 'nullable|string|in:DITO TELECOMMUNITY CORPORATION,CHINA COMMUNICATION SERVICES PHILIPPINES CORPORATION,FUTURENET AND TECHNOLOGY CORPORATION,BESTWORLD ENGINEERING SDN BHD',
             'vehicle_status' => 'nullable|string|max:50',
             'add_date_in_company' => 'nullable|date',
             'creation_date' => 'nullable|date',
@@ -62,6 +63,7 @@ class VehicleController extends Controller
                 'vehicle_owner' => $request->vehicle_owner,
                 'vehicle_owner_address' => $request->vehicle_owner_address,
                 'vehicle_brand' => $request->vehicle_brand,
+                'company_name' => $request->company_name,
                 'vehicle_status' => $request->vehicle_status ?? 'active',
                 'add_date_in_company' => $request->add_date_in_company,
                 'creator' => $request->user()->id, // Get creator ID from authenticated user
@@ -127,6 +129,7 @@ class VehicleController extends Controller
                 'vehicle_owner' => 'nullable|string|max:255',
                 'vehicle_owner_address' => 'nullable|string',
                 'vehicle_brand' => 'nullable|string|max:100',
+                'company_name' => 'nullable|string|in:DITO TELECOMMUNITY CORPORATION,CHINA COMMUNICATION SERVICES PHILIPPINES CORPORATION,FUTURENET AND TECHNOLOGY CORPORATION,BESTWORLD ENGINEERING SDN BHD',
                 'vehicle_status' => 'nullable|string|max:50',
                 'add_date_in_company' => 'nullable|date',
                 'creation_date' => 'nullable|date',
@@ -153,6 +156,7 @@ class VehicleController extends Controller
                 $vehicleData['vehicle_owner'] = $request->vehicle_owner;
                 $vehicleData['vehicle_owner_address'] = $request->vehicle_owner_address;
                 $vehicleData['vehicle_brand'] = $request->vehicle_brand;
+                $vehicleData['company_name'] = $request->company_name;
                 $vehicleData['vehicle_status'] = $request->vehicle_status;
                 $vehicleData['add_date_in_company'] = $request->add_date_in_company;
                 $vehicleData['creation_date'] = $request->creation_date;
@@ -167,6 +171,7 @@ class VehicleController extends Controller
                     'vehicle_owner' => $request->vehicle_owner,
                     'vehicle_owner_address' => $request->vehicle_owner_address,
                     'vehicle_brand' => $request->vehicle_brand,
+                    'company_name' => $request->company_name,
                     'vehicle_status' => $request->vehicle_status,
                     'add_date_in_company' => $request->add_date_in_company,
                     'creation_date' => $request->creation_date,

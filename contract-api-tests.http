@@ -1,0 +1,125 @@
+# Contract API Tests with Company Dropdown
+
+### Test Authentication (Get Token First)
+POST http://127.0.0.1:8000/api/auth/login
+Content-Type: application/json
+
+{
+    "email": "admin@example.com",
+    "password": "password"
+}
+
+### Get All Contracts
+GET http://127.0.0.1:8000/api/contracts
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+### Get Vehicles for Dropdown
+GET http://127.0.0.1:8000/api/contracts-vehicles
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+### Create Contract with FUTURENET (2% EWT)
+POST http://127.0.0.1:8000/api/contracts
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+    "particular": "FUTURENET Transportation Services",
+    "vehicle_type": "Van",
+    "plate_number": "ABC-123",
+    "owners_name": "John Doe",
+    "company_assigned": "FUTURENET AND TECHNOLOGY CORPORATION",
+    "location_area": "Manila Metro Area",
+    "drivers_name": "Driver Name",
+    "amount_range": "50000.00",
+    "12m_vat": "6000.00",
+    "contract_amount": 56000.00,
+    "less_ewt": 1000.00,
+    "final_amount": 55000.00,
+    "remarks": "Contract with 2% EWT for FUTURENET",
+    "suppliers_amount": 30000.00,
+    "drivers_salary": 15000.00,
+    "start_date": "2025-08-29",
+    "end_remarks": "Active contract with 2% EWT"
+}
+
+### Create Contract with DITO (5% EWT)
+POST http://127.0.0.1:8000/api/contracts
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+    "particular": "DITO Transportation Services",
+    "vehicle_type": "Van", 
+    "plate_number": "DEF-456",
+    "owners_name": "Jane Smith",
+    "company_assigned": "DITO TELECOMMUNITY CORPORATION",
+    "location_area": "Cebu Metro Area",
+    "drivers_name": "Driver Name 2",
+    "amount_range": "50000.00",
+    "12m_vat": "6000.00",
+    "contract_amount": 56000.00,
+    "less_ewt": 2500.00,
+    "final_amount": 53500.00,
+    "remarks": "Contract with 5% EWT for DITO",
+    "suppliers_amount": 30000.00,
+    "drivers_salary": 15000.00,
+    "start_date": "2025-08-29",
+    "end_remarks": "Active contract with 5% EWT"
+}
+
+### Update Contract with Different Company
+PUT http://127.0.0.1:8000/api/contracts/1
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+    "particular": "Updated Transportation Services",
+    "vehicle_type": "Van",
+    "plate_number": "ABC-123",
+    "owners_name": "John Doe Updated",
+    "company_assigned": "CHINA COMMUNICATION SERVICES PHILIPPINES CORPORATION",
+    "location_area": "Cebu Metro Area",
+    "drivers_name": "Updated Driver Name",
+    "amount_range": "55000.00",
+    "12m_vat": "6600.00",
+    "contract_amount": 61600.00,
+    "less_ewt": 2750.00,
+    "final_amount": 58850.00,
+    "remarks": "Updated contract with 5% EWT",
+    "suppliers_amount": 32000.00,
+    "drivers_salary": 16000.00,
+    "start_date": "2025-08-29",
+    "end_remarks": "Updated active contract with 5% EWT"
+}
+
+### Test Invalid Company (Should Fail)
+POST http://127.0.0.1:8000/api/contracts
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+    "particular": "Test Invalid Company",
+    "vehicle_type": "Van",
+    "plate_number": "ABC-123",
+    "owners_name": "John Doe",
+    "company_assigned": "INVALID COMPANY NAME",
+    "location_area": "Test Area",
+    "drivers_name": "Test Driver",
+    "amount_range": "10000.00",
+    "12m_vat": "1200.00",
+    "contract_amount": 11200.00,
+    "less_ewt": 500.00,
+    "final_amount": 10700.00,
+    "remarks": "This should fail validation",
+    "suppliers_amount": 5000.00,
+    "drivers_salary": 3000.00,
+    "start_date": "2025-08-29",
+    "end_remarks": "Should not be created"
+}
+
+### Delete Contract
+DELETE http://127.0.0.1:8000/api/contracts/1
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json

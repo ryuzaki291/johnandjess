@@ -329,12 +329,78 @@ const ContractsNew: React.FC = () => {
             }
         }
 
-        setFormData(prev => ({
-            ...prev,
-            [name]: ['contractAmount', 'lessEwt', 'finalAmount', 'suppliersAmount', 'driversSalary'].includes(name) 
-                ? parseFloat(value) || 0 
-                : value
-        }));
+        let updatedFormData = { ...formData };
+        
+        // Handle numeric fields
+        if (['suppliersAmount', 'driversSalary'].includes(name)) {
+            updatedFormData = {
+                ...updatedFormData,
+                [name]: parseFloat(value) || 0
+            };
+        } else {
+            updatedFormData = {
+                ...updatedFormData,
+                [name]: value
+            };
+        }
+
+        // Auto-calculate when Net Total Amount changes
+        if (name === 'amountRange') {
+            const netTotalAmount = parseFloat(value) || 0;
+            
+            // 12% VAT = 12% of Net Total Amount
+            const vatAmount = netTotalAmount * 0.12;
+            
+            // Contract Amount = Net Total Amount + 12% VAT
+            const contractAmount = netTotalAmount + vatAmount;
+            
+            // Conditional EWT based on company assigned
+            // FUTURENET AND TECHNOLOGY CORPORATION uses 2% EWT, others use 5%
+            const ewtRate = updatedFormData.companyAssigned === 'FUTURENET AND TECHNOLOGY CORPORATION' ? 0.02 : 0.05;
+            const ewtAmount = netTotalAmount * ewtRate;
+            
+            // Final Amount = Contract Amount - EWT
+            const finalAmount = contractAmount - ewtAmount;
+            
+            updatedFormData = {
+                ...updatedFormData,
+                twelveMonthVat: vatAmount.toFixed(2),
+                contractAmount: contractAmount,
+                lessEwt: ewtAmount,
+                finalAmount: finalAmount
+            };
+        }
+
+        // Recalculate when company changes (if net total amount exists)
+        if (name === 'companyAssigned' && updatedFormData.amountRange) {
+            const netTotalAmount = parseFloat(updatedFormData.amountRange) || 0;
+            
+            if (netTotalAmount > 0) {
+                // 12% VAT = 12% of Net Total Amount
+                const vatAmount = netTotalAmount * 0.12;
+                
+                // Contract Amount = Net Total Amount + 12% VAT
+                const contractAmount = netTotalAmount + vatAmount;
+                
+                // Conditional EWT based on company assigned
+                // FUTURENET AND TECHNOLOGY CORPORATION uses 2% EWT, others use 5%
+                const ewtRate = value === 'FUTURENET AND TECHNOLOGY CORPORATION' ? 0.02 : 0.05;
+                const ewtAmount = netTotalAmount * ewtRate;
+                
+                // Final Amount = Contract Amount - EWT
+                const finalAmount = contractAmount - ewtAmount;
+                
+                updatedFormData = {
+                    ...updatedFormData,
+                    twelveMonthVat: vatAmount.toFixed(2),
+                    contractAmount: contractAmount,
+                    lessEwt: ewtAmount,
+                    finalAmount: finalAmount
+                };
+            }
+        }
+
+        setFormData(updatedFormData);
     };
 
     const openModal = () => {
@@ -495,7 +561,7 @@ const ContractsNew: React.FC = () => {
     };
 
     const handleEdit = (record: ContractRecord) => {
-        setFormData({
+        const initialFormData = {
             particular: record.particular,
             vehicleType: record.vehicleType,
             plateNumber: record.plateNumber,
@@ -513,7 +579,35 @@ const ContractsNew: React.FC = () => {
             driversSalary: record.driversSalary,
             startDate: record.startDate,
             endRemarks: record.endRemarks
-        });
+        };
+        
+        // If there's a net total amount, recalculate the auto-computed fields
+        if (record.amountRange && record.amountRange !== '') {
+            const netTotalAmount = parseFloat(record.amountRange) || 0;
+            
+            if (netTotalAmount > 0) {
+                // 12% VAT = 12% of Net Total Amount
+                const vatAmount = netTotalAmount * 0.12;
+                
+                // Contract Amount = Net Total Amount + 12% VAT
+                const contractAmount = netTotalAmount + vatAmount;
+                
+                // Conditional EWT based on company assigned
+                // FUTURENET AND TECHNOLOGY CORPORATION uses 2% EWT, others use 5%
+                const ewtRate = record.companyAssigned === 'FUTURENET AND TECHNOLOGY CORPORATION' ? 0.02 : 0.05;
+                const ewtAmount = netTotalAmount * ewtRate;
+                
+                // Final Amount = Contract Amount - EWT
+                const finalAmount = contractAmount - ewtAmount;
+                
+                initialFormData.twelveMonthVat = vatAmount.toFixed(2);
+                initialFormData.contractAmount = contractAmount;
+                initialFormData.lessEwt = ewtAmount;
+                initialFormData.finalAmount = finalAmount;
+            }
+        }
+        
+        setFormData(initialFormData);
         setIsEditing(true);
         setEditingRecord(record);
         setIsModalOpen(true);
@@ -946,14 +1040,19 @@ const ContractsNew: React.FC = () => {
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                                 Company Assigned *
                                             </label>
-                                            <input
-                                                type="text"
+                                            <select
                                                 name="companyAssigned"
                                                 value={formData.companyAssigned}
                                                 onChange={handleInputChange}
                                                 className="w-full p-2 border border-gray-300 rounded-md"
                                                 required
-                                            />
+                                            >
+                                                <option value="">Select Company</option>
+                                                <option value="DITO TELECOMMUNITY CORPORATION">DITO TELECOMMUNITY CORPORATION</option>
+                                                <option value="CHINA COMMUNICATION SERVICES PHILIPPINES CORPORATION">CHINA COMMUNICATION SERVICES PHILIPPINES CORPORATION</option>
+                                                <option value="FUTURENET AND TECHNOLOGY CORPORATION">FUTURENET AND TECHNOLOGY CORPORATION</option>
+                                                <option value="BESTWORLD ENGINEERING SDN BHD">BESTWORLD ENGINEERING SDN BHD</option>
+                                            </select>
                                         </div>
 
                                         <div>
@@ -986,74 +1085,77 @@ const ContractsNew: React.FC = () => {
 
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Amount Range
+                                                Net Total Amount *
                                             </label>
                                             <input
-                                                type="text"
+                                                type="number"
                                                 name="amountRange"
                                                 value={formData.amountRange}
                                                 onChange={handleInputChange}
                                                 className="w-full p-2 border border-gray-300 rounded-md"
+                                                min="0"
+                                                step="0.01"
+                                                placeholder="Enter net total amount"
+                                                required
                                             />
+                                            <p className="text-xs text-gray-500 mt-1">
+                                                This will auto-calculate VAT, Contract Amount, EWT, and Final Amount
+                                            </p>
                                         </div>
 
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                12M VAT
+                                                12% VAT (Auto-calculated)
+                                                <span className="text-blue-600 text-xs ml-1">📊</span>
                                             </label>
                                             <input
                                                 type="text"
                                                 name="twelveMonthVat"
                                                 value={formData.twelveMonthVat}
-                                                onChange={handleInputChange}
-                                                className="w-full p-2 border border-gray-300 rounded-md"
+                                                className="w-full p-2 border border-blue-200 rounded-md bg-blue-50 text-blue-800 font-medium"
+                                                readOnly
                                             />
                                         </div>
 
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Contract Amount *
+                                                Contract Amount (Auto-calculated) *
+                                                <span className="text-blue-600 text-xs ml-1">📊</span>
                                             </label>
                                             <input
-                                                type="number"
+                                                type="text"
                                                 name="contractAmount"
-                                                value={formData.contractAmount}
-                                                onChange={handleInputChange}
-                                                className="w-full p-2 border border-gray-300 rounded-md"
-                                                min="0"
-                                                step="0.01"
-                                                required
+                                                value={formData.contractAmount.toFixed(2)}
+                                                className="w-full p-2 border border-blue-200 rounded-md bg-blue-50 text-blue-800 font-medium"
+                                                readOnly
                                             />
                                         </div>
 
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Less EWT
+                                                Less {formData.companyAssigned === 'FUTURENET AND TECHNOLOGY CORPORATION' ? '2%' : '5%'} EWT (Auto-calculated)
+                                                <span className="text-blue-600 text-xs ml-1">📊</span>
                                             </label>
                                             <input
-                                                type="number"
+                                                type="text"
                                                 name="lessEwt"
-                                                value={formData.lessEwt}
-                                                onChange={handleInputChange}
-                                                className="w-full p-2 border border-gray-300 rounded-md"
-                                                min="0"
-                                                step="0.01"
+                                                value={formData.lessEwt.toFixed(2)}
+                                                className="w-full p-2 border border-blue-200 rounded-md bg-blue-50 text-blue-800 font-medium"
+                                                readOnly
                                             />
                                         </div>
 
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Final Amount *
+                                                Final Amount (Auto-calculated) *
+                                                <span className="text-green-600 text-xs ml-1">💰</span>
                                             </label>
                                             <input
-                                                type="number"
+                                                type="text"
                                                 name="finalAmount"
-                                                value={formData.finalAmount}
-                                                onChange={handleInputChange}
-                                                className="w-full p-2 border border-gray-300 rounded-md"
-                                                min="0"
-                                                step="0.01"
-                                                required
+                                                value={formData.finalAmount.toFixed(2)}
+                                                className="w-full p-2 border border-green-200 rounded-md bg-green-50 text-green-800 font-bold"
+                                                readOnly
                                             />
                                         </div>
 
@@ -1248,7 +1350,7 @@ const ContractsNew: React.FC = () => {
                                                     <span className="text-blue-600 font-semibold">{formatCurrency(viewRecord.contractAmount)}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span className="text-slate-600 font-medium">Less EWT:</span>
+                                                    <span className="text-slate-600 font-medium">Less 0.05% EWT:</span>
                                                     <span className="text-slate-900">{formatCurrency(viewRecord.lessEwt)}</span>
                                                 </div>
                                                 <div className="flex justify-between border-t pt-2">
@@ -1270,7 +1372,7 @@ const ContractsNew: React.FC = () => {
                                             <h4 className="text-lg font-semibold text-slate-900 mb-4">Additional Information</h4>
                                             <div className="space-y-4">
                                                 <div className="flex justify-between">
-                                                    <span className="text-slate-600 font-medium">Amount Range:</span>
+                                                    <span className="text-slate-600 font-medium">Net Total Amount:</span>
                                                     <span className="text-slate-900">{viewRecord.amountRange || 'N/A'}</span>
                                                 </div>
                                                 <div className="flex justify-between">

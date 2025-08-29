@@ -40,6 +40,7 @@ class Vehicle extends Model
         'vehicle_owner',
         'vehicle_owner_address',
         'vehicle_brand',
+        'company_name',
         'vehicle_status',
         'add_date_in_company',
         'creator',
