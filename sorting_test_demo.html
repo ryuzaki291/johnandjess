@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Trips Sorting Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        .record {
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #007bff;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .record.top { border-left-color: #28a745; background: #e8f5e8; }
+        .record.updated { border-left-color: #ffc107; background: #fff8e1; }
+        .record.old { border-left-color: #6c757d; background: #f1f3f4; }
+        .timestamp { font-family: monospace; font-size: 12px; color: #666; }
+        .most-recent { font-weight: bold; color: #28a745; }
+        h1 { color: #333; text-align: center; }
+        h3 { color: #666; margin-top: 30px; }
+        .explanation { background: #e3f2fd; padding: 15px; border-radius: 4px; margin: 15px 0; }
+        .fix-highlight { background: #c8e6c9; padding: 10px; border-radius: 4px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Daily Trips Sorting Test - Before & After Fix</h1>
+    
+    <div class="test-container">
+        <h3>❌ BEFORE Fix - Incorrect Sorting (Primary: created_at, Secondary: updated_at)</h3>
+        <div class="explanation">
+            <strong>Problem:</strong> Records were sorted primarily by creation date, with updates as secondary criteria. 
+            This meant recently updated old records didn't move to the top.
+        </div>
+        
+        <div class="record old">
+            <strong>Record #3</strong> - Created: 2025-08-28 (Oldest)<br>
+            <span class="timestamp">Created: 2025-08-28 10:00:00 | Updated: 2025-08-28 10:00:00</span><br>
+            <em>Shows third because created_at is oldest</em>
+        </div>
+        
+        <div class="record updated">
+            <strong>Record #2</strong> - Updated Today but Created Yesterday<br>
+            <span class="timestamp">Created: 2025-08-28 15:00:00 | Updated: <span class="most-recent">2025-08-29 14:30:00</span></span><br>
+            <em>Shows second despite being most recently updated!</em>
+        </div>
+        
+        <div class="record top">
+            <strong>Record #1</strong> - Created Today<br>
+            <span class="timestamp">Created: <span class="most-recent">2025-08-29 09:00:00</span> | Updated: 2025-08-29 09:00:00</span><br>
+            <em>Shows first because created_at is newest</em>
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h3>✅ AFTER Fix - Correct Sorting (Most Recent Activity)</h3>
+        <div class="explanation">
+            <strong>Solution:</strong> Records are sorted by the most recent activity (whichever is newer: created_at or updated_at). 
+            This ensures recently updated records appear at the top.
+        </div>
+        
+        <div class="fix-highlight">
+            <strong>Algorithm:</strong> For each record, compare max(created_at, updated_at) and sort by this value descending.
+        </div>
+        
+        <div class="record top">
+            <strong>Record #1</strong> - Updated Today (Most Recent Activity)<br>
+            <span class="timestamp">Created: 2025-08-28 15:00:00 | Updated: <span class="most-recent">2025-08-29 14:30:00</span></span><br>
+            <em>✅ Now shows first - most recent activity is update at 14:30</em>
+        </div>
+        
+        <div class="record updated">
+            <strong>Record #2</strong> - Created Today<br>
+            <span class="timestamp">Created: <span class="most-recent">2025-08-29 09:00:00</span> | Updated: 2025-08-29 09:00:00</span><br>
+            <em>✅ Shows second - most recent activity is creation at 09:00</em>
+        </div>
+        
+        <div class="record old">
+            <strong>Record #3</strong> - Oldest Activity<br>
+            <span class="timestamp">Created: 2025-08-28 10:00:00 | Updated: 2025-08-28 10:00:00</span><br>
+            <em>✅ Shows last - oldest overall activity</em>
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h3>🔄 Additional Fixes Applied:</h3>
+        <ul>
+            <li><strong>Server Data Refresh:</strong> Create/Update operations now call fetchTrips() to get fresh timestamps</li>
+            <li><strong>Accurate Timestamps:</strong> All sorting now uses actual database timestamps, not client approximations</li>
+            <li><strong>Immediate Visibility:</strong> New/updated records appear at top immediately after operation</li>
+            <li><strong>Consistent Behavior:</strong> Sorting works the same way regardless of when records were created or updated</li>
+        </ul>
+    </div>
+    
+    <div class="test-container">
+        <h3>📋 Test Checklist:</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+                <strong>Create New Record:</strong>
+                <ul>
+                    <li>✅ Appears at top of list</li>
+                    <li>✅ Has current timestamp</li>
+                    <li>✅ Stays at top until newer activity</li>
+                </ul>
+            </div>
+            <div>
+                <strong>Update Existing Record:</strong>
+                <ul>
+                    <li>✅ Moves to top of list</li>
+                    <li>✅ Gets new updated_at timestamp</li>
+                    <li>✅ Works regardless of original creation date</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

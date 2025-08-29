@@ -142,30 +142,22 @@ const DailyTrips: React.FC = () => {
     );
 
     const sortedTrips = filteredTrips.sort((a, b) => {
-        // Primary sort by created date
+        // Get the most recent activity date (either created or updated) for each record
         const aCreated = new Date(a.created_at || 0);
-        const bCreated = new Date(b.created_at || 0);
-        
-        // Secondary sort by updated date
         const aUpdated = new Date(a.updated_at || 0);
+        const bCreated = new Date(b.created_at || 0);
         const bUpdated = new Date(b.updated_at || 0);
         
+        // Use the most recent date (created or updated) for sorting
+        const aMostRecent = aUpdated > aCreated ? aUpdated : aCreated;
+        const bMostRecent = bUpdated > bCreated ? bUpdated : bCreated;
+        
         if (sortOrder === 'desc') {
-            // Sort by created date first (newest first)
-            const createdDiff = bCreated.getTime() - aCreated.getTime();
-            if (createdDiff !== 0) {
-                return createdDiff;
-            }
-            // If created dates are the same, sort by updated date (newest first)
-            return bUpdated.getTime() - aUpdated.getTime();
+            // Sort by most recent activity (newest first)
+            return bMostRecent.getTime() - aMostRecent.getTime();
         } else {
-            // Sort by created date first (oldest first)
-            const createdDiff = aCreated.getTime() - bCreated.getTime();
-            if (createdDiff !== 0) {
-                return createdDiff;
-            }
-            // If created dates are the same, sort by updated date (oldest first)
-            return aUpdated.getTime() - bUpdated.getTime();
+            // Sort by most recent activity (oldest first)
+            return aMostRecent.getTime() - bMostRecent.getTime();
         }
     });
 
@@ -439,8 +431,9 @@ const DailyTrips: React.FC = () => {
             Swal.close();
             
             if (response.ok) {
-                setTrips([...trips, responseData.data]);
                 setIsModalOpen(false);
+                // Refresh trips from server to get proper timestamps and sorting
+                await fetchTrips();
                 await Swal.fire({
                     title: 'Trip Created!',
                     text: 'Daily trip has been created successfully.',
@@ -578,10 +571,10 @@ const DailyTrips: React.FC = () => {
             Swal.close();
 
             if (response.ok) {
-                const responseData = await response.json();
-                setTrips(trips.map(trip => trip.id === id ? responseData.data : trip));
                 setIsModalOpen(false);
                 setEditingTrip(null);
+                // Refresh trips from server to get proper updated timestamps and sorting
+                await fetchTrips();
                 await Swal.fire({
                     title: 'Trip Updated!',
                     text: 'Daily trip has been updated successfully.',
