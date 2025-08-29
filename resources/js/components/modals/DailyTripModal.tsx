@@ -8,6 +8,51 @@ interface DailyTripModalProps {
     editingTrip?: DailyTrip | null;
 }
 
+// Helper function to format date for HTML date input (YYYY-MM-DD)
+const formatDateForInput = (dateString: string | null | undefined): string => {
+    if (!dateString) return '';
+    
+    try {
+        // Handle various date formats that might come from the API
+        let date: Date;
+        
+        // If it's already in YYYY-MM-DD format, use it directly
+        if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+            return dateString;
+        }
+        
+        // Parse the date
+        date = new Date(dateString);
+        
+        // Check if date is valid
+        if (isNaN(date.getTime())) {
+            // Try parsing common Laravel date formats
+            if (typeof dateString === 'string') {
+                // Handle Laravel's date format (Y-m-d H:i:s or Y-m-d)
+                const dateOnly = dateString.split(' ')[0]; // Get just the date part
+                date = new Date(dateOnly);
+                
+                if (isNaN(date.getTime())) {
+                    console.warn('Unable to parse date:', dateString);
+                    return '';
+                }
+            } else {
+                return '';
+            }
+        }
+        
+        // Format as YYYY-MM-DD for HTML date input
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        
+        return `${year}-${month}-${day}`;
+    } catch (error) {
+        console.error('Error formatting date:', error);
+        return '';
+    }
+};
+
 const DailyTripModal: React.FC<DailyTripModalProps> = ({
     isOpen,
     onClose,
@@ -17,13 +62,8 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
     const [formData, setFormData] = useState<DailyTripFormData>({
         month_year: '',
         department: '',
-        vehicle_type: '',
+        vehicle_unit: '',
         plate_number: '',
-        vehicle_owner: '',
-        vehicle_brand: '',
-        company_assigned: '',
-        location_area: '',
-        drivers_name: '',
         customer_name: '',
         destination: '',
         date_from: '',
@@ -34,15 +74,7 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
         status_1: '',
         amount_billed: '',
         vat_12_percent: '',
-        contract_amount: '',
-        less_5_ewt: '',
-        final_amount: '',
         total_amount: '',
-        remarks: '',
-        suppliers_amount: '',
-        drivers_salary: '',
-        start_date: '',
-        additional_remarks: '',
         service_invoice: '',
         status_2: ''
     });
@@ -54,32 +86,19 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
             setFormData({
                 month_year: editingTrip.month_year || '',
                 department: editingTrip.department || '',
-                vehicle_type: editingTrip.vehicle_type || '',
+                vehicle_unit: editingTrip.vehicle_unit || '',
                 plate_number: editingTrip.plate_number || '',
-                vehicle_owner: editingTrip.vehicle_owner || editingTrip.vehicle?.vehicle_owner || '',
-                vehicle_brand: editingTrip.vehicle_brand || editingTrip.vehicle?.vehicle_brand || '',
-                company_assigned: editingTrip.company_assigned || '',
-                location_area: editingTrip.location_area || '',
-                drivers_name: editingTrip.drivers_name || '',
                 customer_name: editingTrip.customer_name || '',
                 destination: editingTrip.destination || '',
-                date_from: editingTrip.date_from || '',
-                date_to: editingTrip.date_to || '',
+                date_from: formatDateForInput(editingTrip.date_from),
+                date_to: formatDateForInput(editingTrip.date_to),
                 particular: editingTrip.particular || '',
                 total_allowance: editingTrip.total_allowance || '',
                 drivers_networth: editingTrip.drivers_networth || '',
                 status_1: editingTrip.status_1 || '',
                 amount_billed: editingTrip.amount_billed || '',
                 vat_12_percent: editingTrip.vat_12_percent || '',
-                contract_amount: editingTrip.contract_amount || '',
-                less_5_ewt: editingTrip.less_5_ewt || '',
-                final_amount: editingTrip.final_amount || '',
                 total_amount: editingTrip.total_amount || '',
-                remarks: editingTrip.remarks || '',
-                suppliers_amount: editingTrip.suppliers_amount || '',
-                drivers_salary: editingTrip.drivers_salary || '',
-                start_date: editingTrip.start_date || '',
-                additional_remarks: editingTrip.additional_remarks || '',
                 service_invoice: editingTrip.service_invoice || '',
                 status_2: editingTrip.status_2 || ''
             });
@@ -87,13 +106,8 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
             setFormData({
                 month_year: '',
                 department: '',
-                vehicle_type: '',
+                vehicle_unit: '',
                 plate_number: '',
-                vehicle_owner: '',
-                vehicle_brand: '',
-                company_assigned: '',
-                location_area: '',
-                drivers_name: '',
                 customer_name: '',
                 destination: '',
                 date_from: '',
@@ -104,15 +118,7 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                 status_1: '',
                 amount_billed: '',
                 vat_12_percent: '',
-                contract_amount: '',
-                less_5_ewt: '',
-                final_amount: '',
                 total_amount: '',
-                remarks: '',
-                suppliers_amount: '',
-                drivers_salary: '',
-                start_date: '',
-                additional_remarks: '',
                 service_invoice: '',
                 status_2: ''
             });
@@ -142,6 +148,7 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
         // Convert string numbers to actual numbers for numeric fields
         const processedData = {
             ...formData,
+            total_allowance: formData.total_allowance ? Number(formData.total_allowance) : undefined,
             drivers_networth: formData.drivers_networth ? Number(formData.drivers_networth) : undefined,
             amount_billed: formData.amount_billed ? Number(formData.amount_billed) : undefined,
             vat_12_percent: formData.vat_12_percent ? Number(formData.vat_12_percent) : undefined,
@@ -209,10 +216,28 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                             )}
                         </div>
 
+                        {/* Vehicle Unit */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Vehicle Unit
+                            </label>
+                            <input
+                                type="text"
+                                name="vehicle_unit"
+                                value={formData.vehicle_unit}
+                                onChange={handleInputChange}
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Enter vehicle unit"
+                            />
+                            {errors.vehicle_unit && (
+                                <p className="text-red-500 text-xs mt-1">{errors.vehicle_unit[0]}</p>
+                            )}
+                        </div>
+
                         {/* Plate Number */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Vehicle (Plate Number)
+                                Plate Number
                             </label>
                             <input
                                 type="text"
@@ -230,7 +255,7 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                         {/* Customer Name */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Customer Name
+                                Vehicle Owner/Driver
                             </label>
                             <input
                                 type="text"
@@ -295,10 +320,28 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                             )}
                         </div>
 
+                        {/* Total Allowance */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Total Allowance
+                            </label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                name="total_allowance"
+                                value={formData.total_allowance}
+                                onChange={handleInputChange}
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            {errors.total_allowance && (
+                                <p className="text-red-500 text-xs mt-1">{errors.total_allowance[0]}</p>
+                            )}
+                        </div>
+
                         {/* Drivers Networth */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Drivers Networth
+                                Driver's Networth
                             </label>
                             <input
                                 type="number"

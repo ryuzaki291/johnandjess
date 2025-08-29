@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('month_year')->nullable();
             $table->string('department')->nullable();
+            $table->string('vehicle_unit')->nullable();
             $table->string('plate_number')->nullable();
             $table->string('customer_name')->nullable();
             $table->string('destination')->nullable();
@@ -30,9 +31,6 @@ return new class extends Migration
             $table->string('service_invoice')->nullable();
             $table->string('status_2')->nullable();
             $table->timestamps();
-            
-            // Foreign key constraint for plate_number
-            $table->foreign('plate_number')->references('plate_number')->on('vehicles')->onDelete('set null');
         });
     }
 

@@ -136,7 +136,7 @@ const DailyTrips: React.FC = () => {
     // Sorting and pagination functions
     const filteredTrips = trips.filter(trip =>
         (trip.customer_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (trip.vehicle?.plate_number || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (trip.plate_number || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (trip.destination || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (trip.month_year || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -940,7 +940,7 @@ const DailyTrips: React.FC = () => {
                                 <div className="flex justify-between items-start mb-4">
                                     <div>
                                         <h3 className="text-lg font-bold text-slate-900">{trip.customer_name || 'Unnamed Customer'}</h3>
-                                        <p className="text-sm text-slate-500">{trip.month_year} • {trip.vehicle?.plate_number || 'No Vehicle'}</p>
+                                        <p className="text-sm text-slate-500">{trip.month_year} • {trip.plate_number || 'No Vehicle'}</p>
                                     </div>
                                     <span className="text-sm font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">
                                         {formatCurrency(trip.amount_billed)}
@@ -1070,7 +1070,7 @@ const DailyTrips: React.FC = () => {
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div>
                                                 <div className="text-sm font-medium text-slate-900">{trip.customer_name || 'Unnamed Customer'}</div>
-                                                <div className="text-sm text-slate-500">{trip.vehicle?.plate_number || 'No Vehicle'}</div>
+                                                <div className="text-sm text-slate-500">{trip.plate_number || 'No Vehicle'}</div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
@@ -1278,7 +1278,7 @@ const DailyTrips: React.FC = () => {
                                         </div>
                                         <div className="ml-4">
                                             <h3 className="text-xl font-bold text-slate-900">{viewTrip.customer_name || 'Unnamed Customer'}</h3>
-                                            <p className="text-slate-600">{viewTrip.destination || 'No destination'} • {viewTrip.vehicle?.plate_number || 'No vehicle'}</p>
+                                            <p className="text-slate-600">{viewTrip.destination || 'No destination'} • {viewTrip.plate_number || 'No vehicle'}</p>
                                         </div>
                                         <div className="ml-auto">
                                             <span className="px-4 py-2 rounded-full text-sm font-semibold bg-green-100 text-green-800">
@@ -1307,8 +1307,12 @@ const DailyTrips: React.FC = () => {
                                                     <span className="text-slate-900">{viewTrip.department || 'N/A'}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span className="text-slate-600 font-medium">Vehicle:</span>
-                                                    <span className="text-slate-900">{viewTrip.vehicle?.plate_number || 'N/A'}</span>
+                                                    <span className="text-slate-600 font-medium">Vehicle Unit:</span>
+                                                    <span className="text-slate-900">{viewTrip.vehicle_unit || 'N/A'}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-slate-600 font-medium">Plate Number:</span>
+                                                    <span className="text-slate-900">{viewTrip.plate_number || 'N/A'}</span>
                                                 </div>
                                                 <div className="flex justify-between">
                                                     <span className="text-slate-600 font-medium">Destination:</span>
