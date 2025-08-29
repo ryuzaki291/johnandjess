@@ -142,16 +142,10 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
         // Convert string numbers to actual numbers for numeric fields
         const processedData = {
             ...formData,
-            total_allowance: formData.total_allowance ? Number(formData.total_allowance) : undefined,
             drivers_networth: formData.drivers_networth ? Number(formData.drivers_networth) : undefined,
             amount_billed: formData.amount_billed ? Number(formData.amount_billed) : undefined,
             vat_12_percent: formData.vat_12_percent ? Number(formData.vat_12_percent) : undefined,
-            contract_amount: formData.contract_amount ? Number(formData.contract_amount) : undefined,
-            less_5_ewt: formData.less_5_ewt ? Number(formData.less_5_ewt) : undefined,
-            final_amount: formData.final_amount ? Number(formData.final_amount) : undefined,
             total_amount: formData.total_amount ? Number(formData.total_amount) : undefined,
-            suppliers_amount: formData.suppliers_amount ? Number(formData.suppliers_amount) : undefined,
-            drivers_salary: formData.drivers_salary ? Number(formData.drivers_salary) : undefined,
         };
 
         onSubmit(processedData);
@@ -215,24 +209,6 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                             )}
                         </div>
 
-                        {/* Vehicle Type */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Vehicle Type
-                            </label>
-                            <input
-                                type="text"
-                                name="vehicle_type"
-                                value={formData.vehicle_type}
-                                onChange={handleInputChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Enter vehicle type"
-                            />
-                            {errors.vehicle_type && (
-                                <p className="text-red-500 text-xs mt-1">{errors.vehicle_type[0]}</p>
-                            )}
-                        </div>
-
                         {/* Plate Number */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -248,96 +224,6 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                             />
                             {errors.plate_number && (
                                 <p className="text-red-500 text-xs mt-1">{errors.plate_number[0]}</p>
-                            )}
-                        </div>
-
-                        {/* Vehicle Owner */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Vehicle Owner
-                            </label>
-                            <input
-                                type="text"
-                                name="vehicle_owner"
-                                value={formData.vehicle_owner}
-                                onChange={handleInputChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Enter vehicle owner"
-                            />
-                            {errors.vehicle_owner && (
-                                <p className="text-red-500 text-xs mt-1">{errors.vehicle_owner[0]}</p>
-                            )}
-                        </div>
-
-                        {/* Unit/Brand */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Unit/Brand
-                            </label>
-                            <input
-                                type="text"
-                                name="vehicle_brand"
-                                value={formData.vehicle_brand}
-                                onChange={handleInputChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Enter vehicle brand"
-                            />
-                            {errors.vehicle_brand && (
-                                <p className="text-red-500 text-xs mt-1">{errors.vehicle_brand[0]}</p>
-                            )}
-                        </div>
-
-                        {/* Company Assigned */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Company Assigned
-                            </label>
-                            <input
-                                type="text"
-                                name="company_assigned"
-                                value={formData.company_assigned}
-                                onChange={handleInputChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Enter company assigned"
-                            />
-                            {errors.company_assigned && (
-                                <p className="text-red-500 text-xs mt-1">{errors.company_assigned[0]}</p>
-                            )}
-                        </div>
-
-                        {/* Location/Area */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Location/Area
-                            </label>
-                            <input
-                                type="text"
-                                name="location_area"
-                                value={formData.location_area}
-                                onChange={handleInputChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Enter location or area"
-                            />
-                            {errors.location_area && (
-                                <p className="text-red-500 text-xs mt-1">{errors.location_area[0]}</p>
-                            )}
-                        </div>
-
-                        {/* Driver's Name */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Driver's Name
-                            </label>
-                            <input
-                                type="text"
-                                name="drivers_name"
-                                value={formData.drivers_name}
-                                onChange={handleInputChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Enter driver's name"
-                            />
-                            {errors.drivers_name && (
-                                <p className="text-red-500 text-xs mt-1">{errors.drivers_name[0]}</p>
                             )}
                         </div>
 
@@ -406,41 +292,6 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                             />
                             {errors.date_to && (
                                 <p className="text-red-500 text-xs mt-1">{errors.date_to[0]}</p>
-                            )}
-                        </div>
-
-                        {/* Start Date */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Start Date
-                            </label>
-                            <input
-                                type="date"
-                                name="start_date"
-                                value={formData.start_date}
-                                onChange={handleInputChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                            {errors.start_date && (
-                                <p className="text-red-500 text-xs mt-1">{errors.start_date[0]}</p>
-                            )}
-                        </div>
-
-                        {/* Total Allowance */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Total Allowance
-                            </label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                name="total_allowance"
-                                value={formData.total_allowance}
-                                onChange={handleInputChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                            {errors.total_allowance && (
-                                <p className="text-red-500 text-xs mt-1">{errors.total_allowance[0]}</p>
                             )}
                         </div>
 
@@ -520,60 +371,6 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                             )}
                         </div>
 
-                        {/* Contract Amount */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Contract Amount
-                            </label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                name="contract_amount"
-                                value={formData.contract_amount}
-                                onChange={handleInputChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                            {errors.contract_amount && (
-                                <p className="text-red-500 text-xs mt-1">{errors.contract_amount[0]}</p>
-                            )}
-                        </div>
-
-                        {/* Less 5% EWT */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Less 5% EWT
-                            </label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                name="less_5_ewt"
-                                value={formData.less_5_ewt}
-                                onChange={handleInputChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                            {errors.less_5_ewt && (
-                                <p className="text-red-500 text-xs mt-1">{errors.less_5_ewt[0]}</p>
-                            )}
-                        </div>
-
-                        {/* Final Amount */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Final Amount
-                            </label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                name="final_amount"
-                                value={formData.final_amount}
-                                onChange={handleInputChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                            {errors.final_amount && (
-                                <p className="text-red-500 text-xs mt-1">{errors.final_amount[0]}</p>
-                            )}
-                        </div>
-
                         {/* Total Amount */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -589,60 +386,6 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                             />
                             {errors.total_amount && (
                                 <p className="text-red-500 text-xs mt-1">{errors.total_amount[0]}</p>
-                            )}
-                        </div>
-
-                        {/* Remarks */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Remarks
-                            </label>
-                            <input
-                                type="text"
-                                name="remarks"
-                                value={formData.remarks}
-                                onChange={handleInputChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Enter remarks"
-                            />
-                            {errors.remarks && (
-                                <p className="text-red-500 text-xs mt-1">{errors.remarks[0]}</p>
-                            )}
-                        </div>
-
-                        {/* Supplier's Amount */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Supplier's Amount
-                            </label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                name="suppliers_amount"
-                                value={formData.suppliers_amount}
-                                onChange={handleInputChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                            {errors.suppliers_amount && (
-                                <p className="text-red-500 text-xs mt-1">{errors.suppliers_amount[0]}</p>
-                            )}
-                        </div>
-
-                        {/* Driver's Salary */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Driver's Salary
-                            </label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                name="drivers_salary"
-                                value={formData.drivers_salary}
-                                onChange={handleInputChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                            {errors.drivers_salary && (
-                                <p className="text-red-500 text-xs mt-1">{errors.drivers_salary[0]}</p>
                             )}
                         </div>
 
@@ -683,24 +426,6 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                             </select>
                             {errors.status_2 && (
                                 <p className="text-red-500 text-xs mt-1">{errors.status_2[0]}</p>
-                            )}
-                        </div>
-
-                        {/* Additional Remarks */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Additional Remarks
-                            </label>
-                            <input
-                                type="text"
-                                name="additional_remarks"
-                                value={formData.additional_remarks}
-                                onChange={handleInputChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Enter additional remarks"
-                            />
-                            {errors.additional_remarks && (
-                                <p className="text-red-500 text-xs mt-1">{errors.additional_remarks[0]}</p>
                             )}
                         </div>
                     </div>
