@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status Edit Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            background: #f5f5f5;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .test-record {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #007bff;
+        }
+        .legacy {
+            color: #666;
+            font-style: italic;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        h3 {
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>Status Edit Page Test</h1>
+    
+    <div class="test-section">
+        <h3>Test Case: Editing Records with Different Status Values</h3>
+        
+        <div class="test-record">
+            <strong>Record 1 - New Format:</strong><br>
+            Status J&J: <select id="status1_new">
+                <option value="">Select Status</option>
+                <option value="Paid" selected>Paid</option>
+                <option value="Unpaid">Unpaid</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Cancelled">Cancelled</option>
+                <option value="Pending">Pending (Legacy)</option>
+                <option value="Completed">Completed (Legacy)</option>
+            </select>
+            
+            Status Customer: <select id="status2_new">
+                <option value="">Select Status</option>
+                <option value="Paid">Paid</option>
+                <option value="Unpaid" selected>Unpaid</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Cancelled">Cancelled</option>
+                <option value="Approved">Approved (Legacy)</option>
+                <option value="Under Review">Under Review (Legacy)</option>
+                <option value="Rejected">Rejected (Legacy)</option>
+                <option value="Active">Active (Legacy)</option>
+                <option value="Inactive">Inactive (Legacy)</option>
+            </select>
+            <em>✅ This should work - new status values display correctly</em>
+        </div>
+        
+        <div class="test-record">
+            <strong>Record 2 - Legacy Format:</strong><br>
+            Status J&J: <select id="status1_legacy">
+                <option value="">Select Status</option>
+                <option value="Paid">Paid</option>
+                <option value="Unpaid">Unpaid</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Cancelled">Cancelled</option>
+                <option value="Pending" selected>Pending (Legacy)</option>
+                <option value="Completed">Completed (Legacy)</option>
+            </select>
+            
+            Status Customer: <select id="status2_legacy">
+                <option value="">Select Status</option>
+                <option value="Paid">Paid</option>
+                <option value="Unpaid">Unpaid</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Cancelled">Cancelled</option>
+                <option value="Approved" selected>Approved (Legacy)</option>
+                <option value="Under Review">Under Review (Legacy)</option>
+                <option value="Rejected">Rejected (Legacy)</option>
+                <option value="Active">Active (Legacy)</option>
+                <option value="Inactive">Inactive (Legacy)</option>
+            </select>
+            <em>✅ This should now work - legacy status values can be selected</em>
+        </div>
+        
+        <div class="test-record">
+            <strong>Record 3 - Unknown Status (would fail before fix):</strong><br>
+            Status J&J: <select id="status1_unknown">
+                <option value="">Select Status</option>
+                <option value="Paid">Paid</option>
+                <option value="Unpaid">Unpaid</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Cancelled">Cancelled</option>
+                <option value="Pending">Pending (Legacy)</option>
+                <option value="Completed">Completed (Legacy)</option>
+            </select>
+            <span class="legacy">(Simulating database value "Unknown Status" - would show as "Select Status")</span>
+            
+            Status Customer: <select id="status2_unknown">
+                <option value="">Select Status</option>
+                <option value="Paid">Paid</option>
+                <option value="Unpaid">Unpaid</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Cancelled">Cancelled</option>
+                <option value="Approved">Approved (Legacy)</option>
+                <option value="Under Review">Under Review (Legacy)</option>
+                <option value="Rejected">Rejected (Legacy)</option>
+                <option value="Active">Active (Legacy)</option>
+                <option value="Inactive">Inactive (Legacy)</option>
+            </select>
+            <span class="legacy">(Database value not in dropdown options)</span>
+            <br><em>⚠️ Status values not in dropdown will show as "Select Status"</em>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Database Status Values Found:</h3>
+        <ul>
+            <li><strong>Status 1:</strong> "Pending", "Cancelled", "Paid"</li>
+            <li><strong>Status 2:</strong> "Approved", "Under Review", "Rejected", "Unpaid"</li>
+        </ul>
+        
+        <h3>Fix Applied:</h3>
+        <ul>
+            <li>✅ Added legacy options with "(Legacy)" suffix</li>
+            <li>✅ New records can use new status values</li>
+            <li>✅ Existing records will show correct status in edit mode</li>
+            <li>✅ Users can update legacy statuses to new format</li>
+        </ul>
+    </div>
+</body>
+</html>

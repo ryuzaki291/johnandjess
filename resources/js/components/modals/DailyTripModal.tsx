@@ -83,6 +83,10 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
 
     useEffect(() => {
         if (editingTrip) {
+            const amountBilled = parseFloat(String(editingTrip.amount_billed)) || 0;
+            const vat = amountBilled * 0.12;
+            const totalAmount = amountBilled + vat;
+            
             setFormData({
                 month_year: editingTrip.month_year || '',
                 department: editingTrip.department || '',
@@ -97,8 +101,8 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                 drivers_networth: editingTrip.drivers_networth || '',
                 status_1: editingTrip.status_1 || '',
                 amount_billed: editingTrip.amount_billed || '',
-                vat_12_percent: editingTrip.vat_12_percent || '',
-                total_amount: editingTrip.total_amount || '',
+                vat_12_percent: vat.toFixed(2),
+                total_amount: totalAmount.toFixed(2),
                 service_invoice: editingTrip.service_invoice || '',
                 status_2: editingTrip.status_2 || ''
             });
@@ -117,8 +121,8 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                 drivers_networth: '',
                 status_1: '',
                 amount_billed: '',
-                vat_12_percent: '',
-                total_amount: '',
+                vat_12_percent: '0.00',
+                total_amount: '0.00',
                 service_invoice: '',
                 status_2: ''
             });
@@ -128,10 +132,25 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        
+        setFormData(prev => {
+            const newData = {
+                ...prev,
+                [name]: value
+            };
+            
+            // Auto-compute VAT and Total Amount when Amount Billed changes
+            if (name === 'amount_billed') {
+                const amountBilled = parseFloat(value) || 0;
+                const vat = amountBilled * 0.12;
+                const totalAmount = amountBilled + vat;
+                
+                newData.vat_12_percent = vat.toFixed(2);
+                newData.total_amount = totalAmount.toFixed(2);
+            }
+            
+            return newData;
+        });
         
         // Clear error for this field
         if (errors[name]) {
@@ -356,10 +375,10 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                             )}
                         </div>
 
-                        {/* Status 1 */}
+                        {/* Status J&J */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Status 1
+                                Status J&J
                             </label>
                             <select
                                 name="status_1"
@@ -368,10 +387,13 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 <option value="">Select Status</option>
-                                <option value="Pending">Pending</option>
+                                <option value="Paid">Paid</option>
+                                <option value="Unpaid">Unpaid</option>
                                 <option value="In Progress">In Progress</option>
-                                <option value="Completed">Completed</option>
                                 <option value="Cancelled">Cancelled</option>
+                                {/* Legacy status options for existing records */}
+                                <option value="Pending">Pending (Legacy)</option>
+                                <option value="Completed">Completed (Legacy)</option>
                             </select>
                             {errors.status_1 && (
                                 <p className="text-red-500 text-xs mt-1">{errors.status_1[0]}</p>
@@ -399,15 +421,16 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                         {/* 12% VAT */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                12% VAT
+                                12% VAT (Auto-computed)
                             </label>
                             <input
                                 type="number"
                                 step="0.01"
                                 name="vat_12_percent"
                                 value={formData.vat_12_percent}
-                                onChange={handleInputChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                readOnly
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 focus:outline-none cursor-not-allowed"
+                                tabIndex={-1}
                             />
                             {errors.vat_12_percent && (
                                 <p className="text-red-500 text-xs mt-1">{errors.vat_12_percent[0]}</p>
@@ -417,15 +440,16 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                         {/* Total Amount */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Total Amount
+                                Total Amount (Auto-computed)
                             </label>
                             <input
                                 type="number"
                                 step="0.01"
                                 name="total_amount"
                                 value={formData.total_amount}
-                                onChange={handleInputChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                readOnly
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 focus:outline-none cursor-not-allowed"
+                                tabIndex={-1}
                             />
                             {errors.total_amount && (
                                 <p className="text-red-500 text-xs mt-1">{errors.total_amount[0]}</p>
@@ -449,10 +473,10 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                             )}
                         </div>
 
-                        {/* Status 2 */}
+                        {/* Status Costumer */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Status 2
+                                Status Costumer
                             </label>
                             <select
                                 name="status_2"
@@ -461,11 +485,16 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 <option value="">Select Status</option>
-                                <option value="Active">Active</option>
-                                <option value="Inactive">Inactive</option>
-                                <option value="Under Review">Under Review</option>
-                                <option value="Approved">Approved</option>
-                                <option value="Rejected">Rejected</option>
+                                <option value="Paid">Paid</option>
+                                <option value="Unpaid">Unpaid</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Cancelled">Cancelled</option>
+                                {/* Legacy status options for existing records */}
+                                <option value="Approved">Approved (Legacy)</option>
+                                <option value="Under Review">Under Review (Legacy)</option>
+                                <option value="Rejected">Rejected (Legacy)</option>
+                                <option value="Active">Active (Legacy)</option>
+                                <option value="Inactive">Inactive (Legacy)</option>
                             </select>
                             {errors.status_2 && (
                                 <p className="text-red-500 text-xs mt-1">{errors.status_2[0]}</p>
