@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DailyTrip, DailyTripFormData } from '../../types/DailyTrip';
+import { formatPesoInput, parsePesoInput, handlePesoInput } from '../../utils/pesoFormatter';
 
 interface DailyTripModalProps {
     isOpen: boolean;
@@ -7,6 +8,7 @@ interface DailyTripModalProps {
     onSubmit: (data: DailyTripFormData) => void;
     editingTrip?: DailyTrip | null;
 }
+
 
 // Helper function to format date for HTML date input (YYYY-MM-DD)
 const formatDateForInput = (dateString: string | null | undefined): string => {
@@ -84,6 +86,8 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
     useEffect(() => {
         if (editingTrip) {
             const amountBilled = parseFloat(String(editingTrip.amount_billed)) || 0;
+            const totalAllowance = parseFloat(String(editingTrip.total_allowance)) || 0;
+            const driversNetworth = parseFloat(String(editingTrip.drivers_networth)) || 0;
             const vat = amountBilled * 0.12;
             const totalAmount = amountBilled + vat;
             
@@ -97,12 +101,12 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                 date_from: formatDateForInput(editingTrip.date_from),
                 date_to: formatDateForInput(editingTrip.date_to),
                 particular: editingTrip.particular || '',
-                total_allowance: editingTrip.total_allowance || '',
-                drivers_networth: editingTrip.drivers_networth || '',
+                total_allowance: formatPesoInput(totalAllowance),
+                drivers_networth: formatPesoInput(driversNetworth),
                 status_1: editingTrip.status_1 || '',
-                amount_billed: editingTrip.amount_billed || '',
-                vat_12_percent: vat.toFixed(2),
-                total_amount: totalAmount.toFixed(2),
+                amount_billed: formatPesoInput(amountBilled),
+                vat_12_percent: formatPesoInput(vat),
+                total_amount: formatPesoInput(totalAmount),
                 service_invoice: editingTrip.service_invoice || '',
                 status_2: editingTrip.status_2 || ''
             });
@@ -121,8 +125,8 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                 drivers_networth: '',
                 status_1: '',
                 amount_billed: '',
-                vat_12_percent: '0.00',
-                total_amount: '0.00',
+                vat_12_percent: formatPesoInput(0),
+                total_amount: formatPesoInput(0),
                 service_invoice: '',
                 status_2: ''
             });
@@ -133,24 +137,35 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         
-        setFormData(prev => {
-            const newData = {
-                ...prev,
-                [name]: value
-            };
+        // Handle peso-formatted fields
+        const pesoFields = ['amount_billed', 'total_allowance', 'drivers_networth'];
+        if (pesoFields.includes(name) && e.target instanceof HTMLInputElement) {
+            handlePesoInput(e as React.ChangeEvent<HTMLInputElement>, name, formData, setFormData);
             
             // Auto-compute VAT and Total Amount when Amount Billed changes
             if (name === 'amount_billed') {
-                const amountBilled = parseFloat(value) || 0;
+                const amountBilled = parsePesoInput(value);
                 const vat = amountBilled * 0.12;
                 const totalAmount = amountBilled + vat;
                 
-                newData.vat_12_percent = vat.toFixed(2);
-                newData.total_amount = totalAmount.toFixed(2);
+                setFormData(prev => ({
+                    ...prev,
+                    amount_billed: formatPesoInput(amountBilled),
+                    vat_12_percent: formatPesoInput(vat),
+                    total_amount: formatPesoInput(totalAmount)
+                }));
             }
-            
-            return newData;
-        });
+        } else {
+            // Handle regular fields
+            setFormData(prev => {
+                const newData = {
+                    ...prev,
+                    [name]: value
+                };
+                
+                return newData;
+            });
+        }
         
         // Clear error for this field
         if (errors[name]) {
@@ -164,14 +179,14 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         
-        // Convert string numbers to actual numbers for numeric fields
+        // Convert peso-formatted strings to actual numbers for numeric fields
         const processedData = {
             ...formData,
-            total_allowance: formData.total_allowance ? Number(formData.total_allowance) : undefined,
-            drivers_networth: formData.drivers_networth ? Number(formData.drivers_networth) : undefined,
-            amount_billed: formData.amount_billed ? Number(formData.amount_billed) : undefined,
-            vat_12_percent: formData.vat_12_percent ? Number(formData.vat_12_percent) : undefined,
-            total_amount: formData.total_amount ? Number(formData.total_amount) : undefined,
+            total_allowance: formData.total_allowance ? parsePesoInput(String(formData.total_allowance)) : undefined,
+            drivers_networth: formData.drivers_networth ? parsePesoInput(String(formData.drivers_networth)) : undefined,
+            amount_billed: formData.amount_billed ? parsePesoInput(String(formData.amount_billed)) : undefined,
+            vat_12_percent: formData.vat_12_percent ? parsePesoInput(String(formData.vat_12_percent)) : undefined,
+            total_amount: formData.total_amount ? parsePesoInput(String(formData.total_amount)) : undefined,
         };
 
         onSubmit(processedData);
@@ -345,11 +360,11 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                                 Total Allowance
                             </label>
                             <input
-                                type="number"
-                                step="0.01"
+                                type="text"
                                 name="total_allowance"
                                 value={formData.total_allowance}
                                 onChange={handleInputChange}
+                                placeholder="₱0.00"
                                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                             {errors.total_allowance && (
@@ -363,11 +378,11 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                                 Driver's Networth
                             </label>
                             <input
-                                type="number"
-                                step="0.01"
+                                type="text"
                                 name="drivers_networth"
                                 value={formData.drivers_networth}
                                 onChange={handleInputChange}
+                                placeholder="₱0.00"
                                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                             {errors.drivers_networth && (
@@ -406,11 +421,11 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                                 Amount Billed
                             </label>
                             <input
-                                type="number"
-                                step="0.01"
+                                type="text"
                                 name="amount_billed"
                                 value={formData.amount_billed}
                                 onChange={handleInputChange}
+                                placeholder="₱0.00"
                                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                             {errors.amount_billed && (
@@ -424,8 +439,7 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                                 12% VAT (Auto-computed)
                             </label>
                             <input
-                                type="number"
-                                step="0.01"
+                                type="text"
                                 name="vat_12_percent"
                                 value={formData.vat_12_percent}
                                 readOnly
@@ -443,8 +457,7 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                                 Total Amount (Auto-computed)
                             </label>
                             <input
-                                type="number"
-                                step="0.01"
+                                type="text"
                                 name="total_amount"
                                 value={formData.total_amount}
                                 readOnly

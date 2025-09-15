@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
+import { formatPesoInput, parsePesoInput, handlePesoInput } from '../../utils/pesoFormatter';
 
 interface Vehicle {
     plate_number: string;

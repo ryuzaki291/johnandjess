@@ -150,7 +150,7 @@ const MainMaintenanceTab: React.FC = () => {
         remarks: '',
         dateOfPms: '',
         performed: '',
-        amount: 0,
+        amount: '',
         qty: 0
     });
 
@@ -261,6 +261,63 @@ const MainMaintenanceTab: React.FC = () => {
         }).format(amount);
     };
 
+    // Peso formatting helpers for input fields
+    const formatPesoInput = (amount: number | string): string => {
+        if (!amount && amount !== 0) return '';
+        const numAmount = typeof amount === 'string' ? parseFloat(amount.replace(/[₱,]/g, '')) : amount;
+        if (isNaN(numAmount)) return '';
+        return new Intl.NumberFormat('en-PH', {
+            style: 'currency',
+            currency: 'PHP'
+        }).format(numAmount);
+    };
+
+    const parsePesoInput = (value: string): number => {
+        const cleaned = value.replace(/[₱,]/g, '');
+        const parsed = parseFloat(cleaned);
+        return isNaN(parsed) ? 0 : parsed;
+    };
+
+    const handlePesoInput = (
+        e: React.ChangeEvent<HTMLInputElement>,
+        fieldName: string,
+        formData: any,
+        setFormData: React.Dispatch<React.SetStateAction<any>>
+    ) => {
+        const input = e.target;
+        const cursorPosition = input.selectionStart || 0;
+        const value = input.value;
+        
+        // Remove peso symbol and commas to get raw number
+        const rawValue = value.replace(/[₱,]/g, '');
+        
+        // Check if it's a valid number
+        if (rawValue === '' || /^\d*\.?\d*$/.test(rawValue)) {
+            const numericValue = parseFloat(rawValue) || 0;
+            
+            // Format the value
+            const formattedValue = formatPesoInput(numericValue);
+            
+            // Calculate cursor position after formatting
+            const commasBeforeCursor = (value.slice(0, cursorPosition).match(/,/g) || []).length;
+            const commasAfterFormat = (formattedValue.slice(0, cursorPosition).match(/,/g) || []).length;
+            const newCursorPosition = cursorPosition + (commasAfterFormat - commasBeforeCursor);
+            
+            // Update form data
+            setFormData((prev: any) => ({
+                ...prev,
+                [fieldName]: formattedValue
+            }));
+            
+            // Set cursor position after React updates the DOM
+            setTimeout(() => {
+                if (input) {
+                    input.setSelectionRange(newCursorPosition, newCursorPosition);
+                }
+            }, 0);
+        }
+    };
+
     // Function to get CSRF token
     const getCSRFToken = () => {
         const token = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement;
@@ -365,10 +422,16 @@ const MainMaintenanceTab: React.FC = () => {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: name === 'amount' || name === 'qty' ? parseFloat(value) || 0 : value
-        }));
+        
+        // Handle peso-formatted amount field
+        if (name === 'amount' && e.target instanceof HTMLInputElement) {
+            handlePesoInput(e as React.ChangeEvent<HTMLInputElement>, name, formData, setFormData);
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: name === 'qty' ? parseFloat(value) || 0 : value
+            }));
+        }
     };
 
     const openModal = () => {
@@ -382,7 +445,7 @@ const MainMaintenanceTab: React.FC = () => {
             remarks: '',
             dateOfPms: '',
             performed: '',
-            amount: 0,
+            amount: '',
             qty: 0
         });
         setIsEditing(false);
@@ -428,7 +491,7 @@ const MainMaintenanceTab: React.FC = () => {
                 remarks: formData.remarks,
                 date_of_pms: formData.dateOfPms,
                 performed: formData.performed,
-                amount: formData.amount,
+                amount: parsePesoInput(formData.amount.toString()),
                 qty: formData.qty
             };
 
@@ -533,7 +596,7 @@ const MainMaintenanceTab: React.FC = () => {
             remarks: record.remarks,
             dateOfPms: record.dateOfPms,
             performed: record.performed,
-            amount: record.amount,
+            amount: formatPesoInput(record.amount),
             qty: record.qty
         });
         setIsEditing(true);
@@ -1087,13 +1150,12 @@ const MainMaintenanceTab: React.FC = () => {
                                             Amount *
                                         </label>
                                         <input
-                                            type="number"
+                                            type="text"
                                             name="amount"
                                             value={formData.amount}
                                             onChange={handleInputChange}
+                                            placeholder="₱0.00"
                                             className="w-full p-2 border border-gray-300 rounded-md"
-                                            min="0"
-                                            step="0.01"
                                             required
                                         />
                                     </div>
