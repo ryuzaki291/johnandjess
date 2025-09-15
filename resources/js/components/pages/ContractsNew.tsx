@@ -169,6 +169,94 @@ const ContractsNew: React.FC = () => {
         }).format(numAmount);
     };
 
+    // Format number with peso symbol for input display
+    const formatPesoInput = (amount: number | string): string => {
+        const numAmount = typeof amount === 'string' ? parseFloat(amount) || 0 : amount || 0;
+        if (numAmount === 0) return '';
+        return new Intl.NumberFormat('en-PH', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(numAmount);
+    };
+
+    // Parse peso input back to number
+    const parsePesoInput = (value: string): number => {
+        // Remove peso symbol, commas, and other non-numeric characters except decimal point
+        const cleanValue = value.replace(/[₱,\s]/g, '');
+        return parseFloat(cleanValue) || 0;
+    };
+
+    // Handle peso input with cursor position preservation
+    const handlePesoInput = (e: React.ChangeEvent<HTMLInputElement>, fieldName: string) => {
+        const input = e.target;
+        const rawValue = input.value;
+        const cursorPosition = input.selectionStart || 0;
+        
+        // Get the current formatted value to compare
+        const currentFormattedValue = fieldName === 'amountRange' 
+            ? (formData.amountRange ? formatPesoInput(formData.amountRange) : '')
+            : (formData[fieldName as keyof typeof formData] ? formatPesoInput(formData[fieldName as keyof typeof formData] as number) : '');
+        
+        // Parse the numeric value
+        const numericValue = parsePesoInput(rawValue);
+        
+        // Update form data
+        let updatedFormData = { ...formData };
+        updatedFormData = {
+            ...updatedFormData,
+            [fieldName]: fieldName === 'amountRange' ? numericValue.toString() : numericValue
+        };
+
+        // Handle auto-calculation for amountRange
+        if (fieldName === 'amountRange') {
+            const netTotalAmount = numericValue;
+            
+            // 12% VAT = 12% of Net Total Amount
+            const vatAmount = netTotalAmount * 0.12;
+            
+            // Contract Amount = Net Total Amount + 12% VAT
+            const contractAmount = netTotalAmount + vatAmount;
+            
+            // Conditional EWT based on company assigned
+            const ewtRate = updatedFormData.companyAssigned === 'FUTURENET AND TECHNOLOGY CORPORATION' ? 0.02 : 0.05;
+            const ewtAmount = netTotalAmount * ewtRate;
+            
+            // Final Amount = Contract Amount - EWT
+            const finalAmount = contractAmount - ewtAmount;
+            
+            updatedFormData = {
+                ...updatedFormData,
+                twelveMonthVat: vatAmount.toFixed(2),
+                contractAmount: contractAmount,
+                lessEwt: ewtAmount,
+                finalAmount: finalAmount
+            };
+        }
+
+        setFormData(updatedFormData);
+
+        // Restore cursor position after React re-render
+        setTimeout(() => {
+            const newFormattedValue = numericValue ? formatPesoInput(numericValue) : '';
+            
+            // Calculate how many commas were added/removed
+            const oldCommas = (currentFormattedValue.match(/,/g) || []).length;
+            const newCommas = (newFormattedValue.match(/,/g) || []).length;
+            const commasDiff = newCommas - oldCommas;
+            
+            // Adjust cursor position based on comma changes
+            let newCursorPosition = cursorPosition + commasDiff;
+            
+            // Make sure cursor position is within bounds
+            newCursorPosition = Math.max(0, Math.min(newCursorPosition, newFormattedValue.length));
+            
+            // Set the cursor position
+            if (input && input === document.activeElement) {
+                input.setSelectionRange(newCursorPosition, newCursorPosition);
+            }
+        }, 0);
+    };
+
     const formatDate = (dateString: string | null | undefined): string => {
         if (!dateString) return 'N/A';
         try {
@@ -179,6 +267,17 @@ const ContractsNew: React.FC = () => {
             });
         } catch (error) {
             return 'Invalid Date';
+        }
+    };
+
+    // Helper function to format date for HTML date input (YYYY-MM-DD)
+    const formatDateForInput = (dateString: string | null | undefined): string => {
+        if (!dateString) return '';
+        try {
+            const date = new Date(dateString);
+            return date.toISOString().split('T')[0];
+        } catch {
+            return '';
         }
     };
 
@@ -331,12 +430,10 @@ const ContractsNew: React.FC = () => {
 
         let updatedFormData = { ...formData };
         
-        // Handle numeric fields
-        if (['suppliersAmount', 'driversSalary'].includes(name)) {
-            updatedFormData = {
-                ...updatedFormData,
-                [name]: parseFloat(value) || 0
-            };
+        // Handle peso amount fields with special formatting
+        if (['amountRange', 'suppliersAmount', 'driversSalary'].includes(name)) {
+            // Use the special peso input handler for these fields
+            return;
         } else {
             updatedFormData = {
                 ...updatedFormData,
@@ -577,7 +674,7 @@ const ContractsNew: React.FC = () => {
             remarks: record.remarks,
             suppliersAmount: record.suppliersAmount,
             driversSalary: record.driversSalary,
-            startDate: record.startDate,
+            startDate: formatDateForInput(record.startDate),
             endRemarks: record.endRemarks
         };
         
@@ -1087,17 +1184,20 @@ const ContractsNew: React.FC = () => {
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                                 Net Total Amount *
                                             </label>
-                                            <input
-                                                type="number"
-                                                name="amountRange"
-                                                value={formData.amountRange}
-                                                onChange={handleInputChange}
-                                                className="w-full p-2 border border-gray-300 rounded-md"
-                                                min="0"
-                                                step="0.01"
-                                                placeholder="Enter net total amount"
-                                                required
-                                            />
+                                            <div className="relative">
+                                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <span className="text-gray-500 sm:text-sm">₱</span>
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    name="amountRange"
+                                                    value={formData.amountRange ? formatPesoInput(formData.amountRange) : ''}
+                                                    onChange={(e) => handlePesoInput(e, 'amountRange')}
+                                                    className="w-full pl-8 p-2 border border-gray-300 rounded-md"
+                                                    placeholder="0.00"
+                                                    required
+                                                />
+                                            </div>
                                             <p className="text-xs text-gray-500 mt-1">
                                                 This will auto-calculate VAT, Contract Amount, EWT, and Final Amount
                                             </p>
@@ -1108,13 +1208,18 @@ const ContractsNew: React.FC = () => {
                                                 12% VAT (Auto-calculated)
                                                 <span className="text-blue-600 text-xs ml-1">📊</span>
                                             </label>
-                                            <input
-                                                type="text"
-                                                name="twelveMonthVat"
-                                                value={formData.twelveMonthVat}
-                                                className="w-full p-2 border border-blue-200 rounded-md bg-blue-50 text-blue-800 font-medium"
-                                                readOnly
-                                            />
+                                            <div className="relative">
+                                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <span className="text-blue-600 sm:text-sm">₱</span>
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    name="twelveMonthVat"
+                                                    value={formData.twelveMonthVat ? formatPesoInput(formData.twelveMonthVat) : '0.00'}
+                                                    className="w-full pl-8 p-2 border border-blue-200 rounded-md bg-blue-50 text-blue-800 font-medium"
+                                                    readOnly
+                                                />
+                                            </div>
                                         </div>
 
                                         <div>
@@ -1122,13 +1227,18 @@ const ContractsNew: React.FC = () => {
                                                 Contract Amount (Auto-calculated) *
                                                 <span className="text-blue-600 text-xs ml-1">📊</span>
                                             </label>
-                                            <input
-                                                type="text"
-                                                name="contractAmount"
-                                                value={formData.contractAmount.toFixed(2)}
-                                                className="w-full p-2 border border-blue-200 rounded-md bg-blue-50 text-blue-800 font-medium"
-                                                readOnly
-                                            />
+                                            <div className="relative">
+                                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <span className="text-blue-600 sm:text-sm">₱</span>
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    name="contractAmount"
+                                                    value={formatPesoInput(formData.contractAmount)}
+                                                    className="w-full pl-8 p-2 border border-blue-200 rounded-md bg-blue-50 text-blue-800 font-medium"
+                                                    readOnly
+                                                />
+                                            </div>
                                         </div>
 
                                         <div>
@@ -1136,13 +1246,18 @@ const ContractsNew: React.FC = () => {
                                                 Less {formData.companyAssigned === 'FUTURENET AND TECHNOLOGY CORPORATION' ? '2%' : '5%'} EWT (Auto-calculated)
                                                 <span className="text-blue-600 text-xs ml-1">📊</span>
                                             </label>
-                                            <input
-                                                type="text"
-                                                name="lessEwt"
-                                                value={formData.lessEwt.toFixed(2)}
-                                                className="w-full p-2 border border-blue-200 rounded-md bg-blue-50 text-blue-800 font-medium"
-                                                readOnly
-                                            />
+                                            <div className="relative">
+                                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <span className="text-blue-600 sm:text-sm">₱</span>
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    name="lessEwt"
+                                                    value={formatPesoInput(formData.lessEwt)}
+                                                    className="w-full pl-8 p-2 border border-blue-200 rounded-md bg-blue-50 text-blue-800 font-medium"
+                                                    readOnly
+                                                />
+                                            </div>
                                         </div>
 
                                         <div>
@@ -1150,43 +1265,56 @@ const ContractsNew: React.FC = () => {
                                                 Final Amount (Auto-calculated) *
                                                 <span className="text-green-600 text-xs ml-1">💰</span>
                                             </label>
-                                            <input
-                                                type="text"
-                                                name="finalAmount"
-                                                value={formData.finalAmount.toFixed(2)}
-                                                className="w-full p-2 border border-green-200 rounded-md bg-green-50 text-green-800 font-bold"
-                                                readOnly
-                                            />
+                                            <div className="relative">
+                                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <span className="text-green-600 sm:text-sm font-bold">₱</span>
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    name="finalAmount"
+                                                    value={formatPesoInput(formData.finalAmount)}
+                                                    className="w-full pl-8 p-2 border border-green-200 rounded-md bg-green-50 text-green-800 font-bold"
+                                                    readOnly
+                                                />
+                                            </div>
                                         </div>
 
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                                 Supplier's Amount
                                             </label>
-                                            <input
-                                                type="number"
-                                                name="suppliersAmount"
-                                                value={formData.suppliersAmount}
-                                                onChange={handleInputChange}
-                                                className="w-full p-2 border border-gray-300 rounded-md"
-                                                min="0"
-                                                step="0.01"
-                                            />
+                                            <div className="relative">
+                                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <span className="text-gray-500 sm:text-sm">₱</span>
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    name="suppliersAmount"
+                                                    value={formData.suppliersAmount ? formatPesoInput(formData.suppliersAmount) : ''}
+                                                    onChange={(e) => handlePesoInput(e, 'suppliersAmount')}
+                                                    className="w-full pl-8 p-2 border border-gray-300 rounded-md"
+                                                    placeholder="0.00"
+                                                />
+                                            </div>
                                         </div>
 
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                                 Driver's Salary
                                             </label>
-                                            <input
-                                                type="number"
-                                                name="driversSalary"
-                                                value={formData.driversSalary}
-                                                onChange={handleInputChange}
-                                                className="w-full p-2 border border-gray-300 rounded-md"
-                                                min="0"
-                                                step="0.01"
-                                            />
+                                            <div className="relative">
+                                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <span className="text-gray-500 sm:text-sm">₱</span>
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    name="driversSalary"
+                                                    value={formData.driversSalary ? formatPesoInput(formData.driversSalary) : ''}
+                                                    onChange={(e) => handlePesoInput(e, 'driversSalary')}
+                                                    className="w-full pl-8 p-2 border border-gray-300 rounded-md"
+                                                    placeholder="0.00"
+                                                />
+                                            </div>
                                         </div>
 
                                         <div>
@@ -1373,11 +1501,11 @@ const ContractsNew: React.FC = () => {
                                             <div className="space-y-4">
                                                 <div className="flex justify-between">
                                                     <span className="text-slate-600 font-medium">Net Total Amount:</span>
-                                                    <span className="text-slate-900">{viewRecord.amountRange || 'N/A'}</span>
+                                                    <span className="text-slate-900">{viewRecord.amountRange ? formatCurrency(viewRecord.amountRange) : 'N/A'}</span>
                                                 </div>
                                                 <div className="flex justify-between">
                                                     <span className="text-slate-600 font-medium">12 Month VAT:</span>
-                                                    <span className="text-slate-900">{viewRecord.twelveMonthVat || 'N/A'}</span>
+                                                    <span className="text-slate-900">{viewRecord.twelveMonthVat ? formatCurrency(viewRecord.twelveMonthVat) : 'N/A'}</span>
                                                 </div>
                                                 <div>
                                                     <span className="text-slate-600 font-medium block mb-1">End Remarks:</span>
