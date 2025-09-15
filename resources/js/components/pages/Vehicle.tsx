@@ -255,8 +255,8 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
             vehicle_brand: vehicle.vehicle_brand || '',
             company_name: vehicle.company_name || '',
             vehicle_status: vehicle.vehicle_status || 'active',
-            add_date_in_company: vehicle.add_date_in_company || '',
-            creation_date: vehicle.creation_date || ''
+            add_date_in_company: formatDateForInput(vehicle.add_date_in_company),
+            creation_date: formatDateForInput(vehicle.creation_date)
         });
         setFormErrors({});
         setShowModal(true);
@@ -521,6 +521,17 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
         }
     };
 
+    // Helper function to format date for HTML date input (YYYY-MM-DD)
+    const formatDateForInput = (dateString: string | null) => {
+        if (!dateString) return '';
+        try {
+            const date = new Date(dateString);
+            return date.toISOString().split('T')[0];
+        } catch {
+            return '';
+        }
+    };
+
     // Sorting and pagination functions
     const sortedVehicles = vehicles.sort((a, b) => {
         const dateA = new Date(a[sortBy]).getTime();
@@ -751,7 +762,7 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
                                 <div className="flex justify-between items-start mb-4">
                                     <div>
                                         <h3 className="text-lg font-bold text-slate-900">{vehicle.plate_number}</h3>
-                                        <p className="text-sm text-slate-500">{vehicle.vehicle_type || 'Unknown Type'} • {vehicle.vehicle_brand || 'Unknown Brand'}</p>
+                                        <p className="text-sm text-slate-500">{vehicle.vehicle_type || 'Unknown Type'} • {vehicle.vehicle_brand || 'Unknown Unit'}</p>
                                         {vehicle.company_name && (
                                             <p className="text-sm text-blue-600 font-medium">{vehicle.company_name}</p>
                                         )}
@@ -763,7 +774,7 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
                                 
                                 <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
                                     <div>
-                                        <p className="text-slate-500 font-medium">Owner</p>
+                                        <p className="text-slate-500 font-medium">Supplier</p>
                                         <p className="text-slate-900 truncate">{vehicle.vehicle_owner || 'N/A'}</p>
                                     </div>
                                     <div>
@@ -845,7 +856,7 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
                                         Vehicle Details
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                                        Owner
+                                        Supplier
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
                                         Status
@@ -886,7 +897,7 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div>
                                                 <div className="text-sm font-semibold text-slate-900">{vehicle.plate_number}</div>
-                                                <div className="text-sm text-slate-500">{vehicle.vehicle_type || 'Unknown Type'} • {vehicle.vehicle_brand || 'Unknown Brand'}</div>
+                                                <div className="text-sm text-slate-500">{vehicle.vehicle_type || 'Unknown Type'} • {vehicle.vehicle_brand || 'Unknown Unit'}</div>
                                                 {vehicle.company_name && (
                                                     <div className="text-sm text-blue-600 font-medium">{vehicle.company_name}</div>
                                                 )}
@@ -1091,7 +1102,7 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
                                         </div>
                                         <div className="ml-4">
                                             <h3 className="text-xl font-bold text-slate-900">{viewVehicle.plate_number}</h3>
-                                            <p className="text-slate-600">{viewVehicle.vehicle_type || 'Unknown Type'} • {viewVehicle.vehicle_brand || 'Unknown Brand'}</p>
+                                            <p className="text-slate-600">{viewVehicle.vehicle_type || 'Unknown Type'} • {viewVehicle.vehicle_brand || 'Unknown Unit'}</p>
                                         </div>
                                         <div className="ml-auto">
                                             <span className={`px-4 py-2 rounded-full text-sm font-semibold ${getStatusColor(viewVehicle.vehicle_status)}`}>
@@ -1116,12 +1127,12 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
                                                     <span className="text-slate-900">{viewVehicle.vehicle_type || 'Not specified'}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span className="text-slate-600 font-medium">Brand:</span>
+                                                    <span className="text-slate-600 font-medium">Car Unit:</span>
                                                     <span className="text-slate-900">{viewVehicle.vehicle_brand || 'Not specified'}</span>
                                                 </div>
                                                 {viewVehicle.company_name && (
                                                     <div className="flex justify-between">
-                                                        <span className="text-slate-600 font-medium">Company:</span>
+                                                        <span className="text-slate-600 font-medium">Client:</span>
                                                         <span className="text-slate-900">{viewVehicle.company_name}</span>
                                                     </div>
                                                 )}
@@ -1135,14 +1146,14 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
                                         </div>
 
                                         <div className="bg-white border border-slate-200 rounded-xl p-6">
-                                            <h4 className="text-lg font-semibold text-slate-900 mb-4">Owner Information</h4>
+                                            <h4 className="text-lg font-semibold text-slate-900 mb-4">Supplier Information</h4>
                                             <div className="space-y-4">
                                                 <div>
-                                                    <span className="text-slate-600 font-medium block mb-1">Owner Name:</span>
+                                                    <span className="text-slate-600 font-medium block mb-1">Supplier Name:</span>
                                                     <span className="text-slate-900">{viewVehicle.vehicle_owner || 'Not specified'}</span>
                                                 </div>
                                                 <div>
-                                                    <span className="text-slate-600 font-medium block mb-1">Owner Address:</span>
+                                                    <span className="text-slate-600 font-medium block mb-1">Supplier Address:</span>
                                                     <span className="text-slate-900">{viewVehicle.vehicle_owner_address || 'Not specified'}</span>
                                                 </div>
                                             </div>
@@ -1154,12 +1165,12 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
                                             <h4 className="text-lg font-semibold text-slate-900 mb-4">Important Dates</h4>
                                             <div className="space-y-4">
                                                 <div className="flex justify-between">
-                                                    <span className="text-slate-600 font-medium">Date Added to Company:</span>
-                                                    <span className="text-slate-900">{formatDate(viewVehicle.add_date_in_company)}</span>
-                                                </div>
-                                                <div className="flex justify-between">
                                                     <span className="text-slate-600 font-medium">Creation Date:</span>
                                                     <span className="text-slate-900">{formatDate(viewVehicle.creation_date)}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-slate-600 font-medium">Starting Date:</span>
+                                                    <span className="text-slate-900">{formatDate(viewVehicle.add_date_in_company)}</span>
                                                 </div>
                                                 <div className="flex justify-between">
                                                     <span className="text-slate-600 font-medium">Record Created:</span>
@@ -1282,7 +1293,7 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
                                             </div>
 
                                             <div>
-                                                <label className="block text-sm font-semibold text-slate-700 mb-2">Vehicle Brand</label>
+                                                <label className="block text-sm font-semibold text-slate-700 mb-2">Car Unit</label>
                                                 <input
                                                     type="text"
                                                     name="vehicle_brand"
@@ -1297,14 +1308,14 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
                                             </div>
 
                                             <div>
-                                                <label className="block text-sm font-semibold text-slate-700 mb-2">Company Name</label>
+                                                <label className="block text-sm font-semibold text-slate-700 mb-2">Clients Name</label>
                                                 <select
                                                     name="company_name"
                                                     value={formData.company_name}
                                                     onChange={handleInputChange}
                                                     className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                                                 >
-                                                    <option value="">Select Company</option>
+                                                    <option value="">Select Client</option>
                                                     <option value="DITO TELECOMMUNITY CORPORATION">DITO TELECOMMUNITY CORPORATION</option>
                                                     <option value="CHINA COMMUNICATION SERVICES PHILIPPINES CORPORATION">CHINA COMMUNICATION SERVICES PHILIPPINES CORPORATION</option>
                                                     <option value="FUTURENET AND TECHNOLOGY CORPORATION">FUTURENET AND TECHNOLOGY CORPORATION</option>
@@ -1335,19 +1346,19 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
                                         </div>
                                     </div>
 
-                                    {/* Owner Information Section */}
+                                    {/* Supplier Information Section */}
                                     <div>
-                                        <h3 className="text-lg font-semibold text-slate-900 mb-4">Owner Information</h3>
+                                        <h3 className="text-lg font-semibold text-slate-900 mb-4">Supplier Information</h3>
                                         <div className="space-y-6">
                                             <div>
-                                                <label className="block text-sm font-semibold text-slate-700 mb-2">Vehicle Owner</label>
+                                                <label className="block text-sm font-semibold text-slate-700 mb-2">Supplier</label>
                                                 <input
                                                     type="text"
                                                     name="vehicle_owner"
                                                     value={formData.vehicle_owner}
                                                     onChange={handleInputChange}
                                                     className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                                                    placeholder="Owner name"
+                                                    placeholder="Supplier name"
                                                 />
                                                 {formErrors.vehicle_owner && (
                                                     <p className="mt-2 text-sm text-red-600">{formErrors.vehicle_owner[0]}</p>
@@ -1355,14 +1366,14 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
                                             </div>
 
                                             <div>
-                                                <label className="block text-sm font-semibold text-slate-700 mb-2">Vehicle Owner Address</label>
+                                                <label className="block text-sm font-semibold text-slate-700 mb-2">Supplier Address</label>
                                                 <textarea
                                                     name="vehicle_owner_address"
                                                     value={formData.vehicle_owner_address}
                                                     onChange={handleInputChange}
                                                     rows={4}
                                                     className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                                                    placeholder="Owner address"
+                                                    placeholder="Supplier address"
                                                 />
                                                 {formErrors.vehicle_owner_address && (
                                                     <p className="mt-2 text-sm text-red-600">{formErrors.vehicle_owner_address[0]}</p>
@@ -1376,25 +1387,25 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
                                         <h3 className="text-lg font-semibold text-slate-900 mb-4">Date Information</h3>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
-                                                <label className="block text-sm font-semibold text-slate-700 mb-2">Date Added to Company</label>
-                                                <input
-                                                    type="date"
-                                                    name="add_date_in_company"
-                                                    value={formData.add_date_in_company}
-                                                    onChange={handleInputChange}
-                                                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                                                />
-                                                {formErrors.add_date_in_company && (
-                                                    <p className="mt-2 text-sm text-red-600">{formErrors.add_date_in_company[0]}</p>
-                                                )}
-                                            </div>
-
-                                            <div>
                                                 <label className="block text-sm font-semibold text-slate-700 mb-2">Creation Date</label>
                                                 <input
                                                     type="date"
                                                     name="creation_date"
                                                     value={formData.creation_date}
+                                                    readOnly
+                                                    className="w-full px-4 py-3 border border-slate-300 rounded-lg bg-slate-50 text-slate-600 cursor-not-allowed"
+                                                />
+                                                {formErrors.creation_date && (
+                                                    <p className="mt-2 text-sm text-red-600">{formErrors.creation_date[0]}</p>
+                                                )}
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-semibold text-slate-700 mb-2">Starting Date</label>
+                                                <input
+                                                    type="date"
+                                                    name="add_date_in_company"
+                                                    value={formData.add_date_in_company}
                                                     onChange={handleInputChange}
                                                     className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                                                 />
