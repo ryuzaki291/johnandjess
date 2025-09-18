@@ -23,6 +23,7 @@ class Contract extends Model
         'remarks',
         'suppliers_amount',
         'drivers_salary',
+        'revenue',
         'start_date',
         'end_remarks',
         'creator'
@@ -34,6 +35,7 @@ class Contract extends Model
         'final_amount' => 'decimal:2',
         'suppliers_amount' => 'decimal:2',
         'drivers_salary' => 'decimal:2',
+        'revenue' => 'decimal:2',
         'start_date' => 'date',
     ];
 

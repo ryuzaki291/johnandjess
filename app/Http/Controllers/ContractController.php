@@ -62,6 +62,7 @@ class ContractController extends Controller
                 'remarks' => 'nullable|string',
                 'suppliers_amount' => 'nullable|numeric|min:0',
                 'drivers_salary' => 'nullable|numeric|min:0',
+                'revenue' => 'nullable|numeric|min:0',
                 'start_date' => 'nullable|date',
                 'end_remarks' => 'nullable|string'
             ]);
@@ -156,6 +157,7 @@ class ContractController extends Controller
                 'remarks' => 'nullable|string',
                 'suppliers_amount' => 'nullable|numeric|min:0',
                 'drivers_salary' => 'nullable|numeric|min:0',
+                'revenue' => 'nullable|numeric|min:0',
                 'start_date' => 'nullable|date',
                 'end_remarks' => 'nullable|string'
             ]);

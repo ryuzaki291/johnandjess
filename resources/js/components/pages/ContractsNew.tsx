@@ -26,6 +26,7 @@ interface ContractRecord {
     remarks: string;
     suppliersAmount: number;
     driversSalary: number;
+    revenue: number;
     startDate: string;
     endRemarks: string;
     vehicle?: Vehicle;
@@ -157,6 +158,7 @@ const ContractsNew: React.FC = () => {
         remarks: '',
         suppliersAmount: 0,
         driversSalary: 0,
+        revenue: 0,
         startDate: '',
         endRemarks: ''
     });
@@ -331,6 +333,10 @@ const ContractsNew: React.FC = () => {
         const amount = parseFloat(String(record.finalAmount)) || 0;
         return sum + amount;
     }, 0);
+    const totalRevenue = contractRecords.reduce((sum, record) => {
+        const amount = parseFloat(String(record.revenue)) || 0;
+        return sum + amount;
+    }, 0);
     const activeContracts = contractRecords.filter(record => record.endRemarks !== 'Terminated').length;
 
     useEffect(() => {
@@ -398,6 +404,7 @@ const ContractsNew: React.FC = () => {
                         remarks: record.remarks || '',
                         suppliersAmount: record.suppliers_amount || 0,
                         driversSalary: record.drivers_salary || 0,
+                        revenue: record.revenue || 0,
                         startDate: record.start_date || '',
                         endRemarks: record.end_remarks || '',
                         vehicle: record.vehicle
@@ -432,7 +439,7 @@ const ContractsNew: React.FC = () => {
         let updatedFormData = { ...formData };
         
         // Handle peso amount fields with special formatting
-        if (['amountRange', 'suppliersAmount', 'driversSalary'].includes(name)) {
+        if (['amountRange', 'suppliersAmount', 'driversSalary', 'revenue'].includes(name)) {
             // Use the special peso input handler for these fields
             return;
         } else {
@@ -518,6 +525,7 @@ const ContractsNew: React.FC = () => {
             remarks: '',
             suppliersAmount: 0,
             driversSalary: 0,
+            revenue: 0,
             startDate: '',
             endRemarks: ''
         });
@@ -568,6 +576,7 @@ const ContractsNew: React.FC = () => {
                 remarks: formData.remarks,
                 suppliers_amount: parseFloat(String(formData.suppliersAmount)) || 0,
                 drivers_salary: parseFloat(String(formData.driversSalary)) || 0,
+                revenue: parseFloat(String(formData.revenue)) || 0,
                 start_date: formData.startDate,
                 end_remarks: formData.endRemarks
             };
@@ -608,6 +617,7 @@ const ContractsNew: React.FC = () => {
                         remarks: result.data.remarks || '',
                         suppliersAmount: parseFloat(String(result.data.suppliers_amount)) || 0,
                         driversSalary: parseFloat(String(result.data.drivers_salary)) || 0,
+                        revenue: parseFloat(String(result.data.revenue)) || 0,
                         startDate: result.data.start_date || '',
                         endRemarks: result.data.end_remarks || '',
                         vehicle: result.data.vehicle,
@@ -675,6 +685,7 @@ const ContractsNew: React.FC = () => {
             remarks: record.remarks,
             suppliersAmount: record.suppliersAmount,
             driversSalary: record.driversSalary,
+            revenue: record.revenue,
             startDate: formatDateForInput(record.startDate),
             endRemarks: record.endRemarks
         };
@@ -805,7 +816,7 @@ const ContractsNew: React.FC = () => {
                 </div>
 
                 {/* Statistics Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
                     <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200 hover:shadow-xl transition-all duration-300">
                         <div className="flex items-center">
                             <div className="p-3 rounded-xl bg-blue-100">
@@ -838,6 +849,18 @@ const ContractsNew: React.FC = () => {
                             <div className="ml-4">
                                 <p className="text-slate-600 text-sm font-medium">Final Amount</p>
                                 <p className="text-2xl font-bold text-slate-900">{formatCurrency(totalFinalAmount)}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200 hover:shadow-xl transition-all duration-300">
+                        <div className="flex items-center">
+                            <div className="p-3 rounded-xl bg-orange-100">
+                                <MoneyIcon />
+                            </div>
+                            <div className="ml-4">
+                                <p className="text-slate-600 text-sm font-medium">Total Revenue</p>
+                                <p className="text-2xl font-bold text-slate-900">{formatCurrency(totalRevenue)}</p>
                             </div>
                         </div>
                     </div>
@@ -925,6 +948,7 @@ const ContractsNew: React.FC = () => {
                                             <th className="text-left py-4 px-6 font-semibold text-slate-700">Driver</th>
                                             <th className="text-left py-4 px-6 font-semibold text-slate-700">Contract Amount</th>
                                             <th className="text-left py-4 px-6 font-semibold text-slate-700">Final Amount</th>
+                                            <th className="text-left py-4 px-6 font-semibold text-slate-700">Revenue</th>
                                             <th className="text-center py-4 px-6 font-semibold text-slate-700">Actions</th>
                                         </tr>
                                     </thead>
@@ -946,6 +970,9 @@ const ContractsNew: React.FC = () => {
                                                 </td>
                                                 <td className="py-4 px-6 font-semibold text-blue-600">
                                                     {formatCurrency(record.finalAmount)}
+                                                </td>
+                                                <td className="py-4 px-6 font-semibold text-purple-600">
+                                                    {formatCurrency(record.revenue)}
                                                 </td>
                                                 <td className="py-4 px-6">
                                                     <div className="flex items-center justify-center space-x-2">
@@ -1320,6 +1347,25 @@ const ContractsNew: React.FC = () => {
 
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Revenue
+                                            </label>
+                                            <div className="relative">
+                                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <span className="text-gray-500 sm:text-sm">₱</span>
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    name="revenue"
+                                                    value={formData.revenue ? formatPesoInput(formData.revenue) : ''}
+                                                    onChange={(e) => handlePesoInput(e, 'revenue')}
+                                                    className="w-full pl-8 p-2 border border-gray-300 rounded-md"
+                                                    placeholder="0.00"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
                                                 Start Date
                                             </label>
                                             <input
@@ -1493,6 +1539,10 @@ const ContractsNew: React.FC = () => {
                                                 <div className="flex justify-between">
                                                     <span className="text-slate-600 font-medium">Drivers Salary:</span>
                                                     <span className="text-slate-900">{formatCurrency(viewRecord.driversSalary)}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-slate-600 font-medium">Revenue:</span>
+                                                    <span className="text-slate-900">{formatCurrency(viewRecord.revenue)}</span>
                                                 </div>
                                             </div>
                                         </div>
