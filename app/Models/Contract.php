@@ -24,6 +24,7 @@ class Contract extends Model
         'suppliers_amount',
         'drivers_salary',
         'revenue',
+        'documents',
         'start_date',
         'end_remarks',
         'creator'
@@ -36,6 +37,7 @@ class Contract extends Model
         'suppliers_amount' => 'decimal:2',
         'drivers_salary' => 'decimal:2',
         'revenue' => 'decimal:2',
+        'documents' => 'array',
         'start_date' => 'date',
     ];
 

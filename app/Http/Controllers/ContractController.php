@@ -63,6 +63,8 @@ class ContractController extends Controller
                 'suppliers_amount' => 'nullable|numeric|min:0',
                 'drivers_salary' => 'nullable|numeric|min:0',
                 'revenue' => 'nullable|numeric|min:0',
+                'documents' => 'nullable|array',
+                'documents.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png,gif|max:10240',
                 'start_date' => 'nullable|date',
                 'end_remarks' => 'nullable|string'
             ]);
@@ -82,6 +84,25 @@ class ContractController extends Controller
 
             $data = $request->all();
             $data['creator'] = $authUser ? $authUser->id : 1; // Fallback to user 1 for testing
+
+            // Handle file uploads
+            $documents = [];
+            if ($request->hasFile('documents')) {
+                foreach ($request->file('documents') as $file) {
+                    $originalName = $file->getClientOriginalName();
+                    $fileName = time() . '_' . uniqid() . '_' . $originalName;
+                    $filePath = $file->storeAs('contracts/documents', $fileName, 'public');
+                    
+                    $documents[] = [
+                        'name' => $originalName,
+                        'path' => $filePath,
+                        'size' => $file->getSize(),
+                        'type' => $file->getMimeType(),
+                        'uploaded_at' => now()->toISOString()
+                    ];
+                }
+            }
+            $data['documents'] = $documents;
 
             Log::info('Creating contract record with data: ' . json_encode($data));
 
@@ -158,6 +179,8 @@ class ContractController extends Controller
                 'suppliers_amount' => 'nullable|numeric|min:0',
                 'drivers_salary' => 'nullable|numeric|min:0',
                 'revenue' => 'nullable|numeric|min:0',
+                'documents' => 'nullable|array',
+                'documents.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png,gif|max:10240',
                 'start_date' => 'nullable|date',
                 'end_remarks' => 'nullable|string'
             ]);
@@ -170,7 +193,31 @@ class ContractController extends Controller
                 ], 422);
             }
 
-            $contract->update($request->all());
+            $data = $request->all();
+            
+            // Handle file uploads
+            if ($request->hasFile('documents')) {
+                $existingDocuments = $contract->documents ?? [];
+                $newDocuments = [];
+                
+                foreach ($request->file('documents') as $file) {
+                    $originalName = $file->getClientOriginalName();
+                    $fileName = time() . '_' . uniqid() . '_' . $originalName;
+                    $filePath = $file->storeAs('contracts/documents', $fileName, 'public');
+                    
+                    $newDocuments[] = [
+                        'name' => $originalName,
+                        'path' => $filePath,
+                        'size' => $file->getSize(),
+                        'type' => $file->getMimeType(),
+                        'uploaded_at' => now()->toISOString()
+                    ];
+                }
+                
+                $data['documents'] = array_merge($existingDocuments, $newDocuments);
+            }
+
+            $contract->update($data);
             $contract->load(['vehicle', 'createdBy']);
             
             Log::info('Contract record updated successfully');
@@ -236,6 +283,90 @@ class ContractController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error fetching vehicles',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Download a document from a contract
+     */
+    public function downloadDocument($contractId, $documentIndex)
+    {
+        try {
+            $contract = Contract::findOrFail($contractId);
+            $documents = $contract->documents ?? [];
+            
+            if (!isset($documents[$documentIndex])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Document not found'
+                ], 404);
+            }
+            
+            $document = $documents[$documentIndex];
+            $filePath = storage_path('app/public/' . $document['path']);
+            
+            if (!file_exists($filePath)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'File not found on server'
+                ], 404);
+            }
+            
+            return response()->download($filePath, $document['name']);
+            
+        } catch (\Exception $e) {
+            Log::error('Error downloading document: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error downloading document',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete a specific document from a contract
+     */
+    public function deleteDocument(Request $request, $contractId)
+    {
+        try {
+            $contract = Contract::findOrFail($contractId);
+            $documentIndex = $request->input('document_index');
+            $documents = $contract->documents ?? [];
+            
+            if (!isset($documents[$documentIndex])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Document not found'
+                ], 404);
+            }
+            
+            $document = $documents[$documentIndex];
+            $filePath = storage_path('app/public/' . $document['path']);
+            
+            // Delete file from storage
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
+            
+            // Remove document from array
+            unset($documents[$documentIndex]);
+            $documents = array_values($documents); // Re-index array
+            
+            $contract->update(['documents' => $documents]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Document deleted successfully'
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error deleting document: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting document',
                 'error' => $e->getMessage()
             ], 500);
         }

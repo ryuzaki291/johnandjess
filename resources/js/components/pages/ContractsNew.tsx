@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Swal from 'sweetalert2';
 import { formatPesoInput, parsePesoInput, handlePesoInput } from '../../utils/pesoFormatter';
 
@@ -7,6 +7,17 @@ interface Vehicle {
     vehicle_type: string;
     vehicle_brand: string;
     vehicle_owner: string;
+}
+
+interface DocumentFile {
+    id?: number;
+    name?: string; // Original filename from backend
+    original_name?: string; // For compatibility with frontend expectations
+    path?: string;
+    size?: number;
+    type?: string; // MIME type from backend
+    mime_type?: string; // For compatibility with frontend expectations  
+    uploaded_at?: string;
 }
 
 interface ContractRecord {
@@ -27,6 +38,7 @@ interface ContractRecord {
     suppliersAmount: number;
     driversSalary: number;
     revenue: number;
+    documents: DocumentFile[];
     startDate: string;
     endRemarks: string;
     vehicle?: Vehicle;
@@ -126,6 +138,30 @@ const ChevronRightIcon = () => (
     </svg>
 );
 
+const UploadIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+    </svg>
+);
+
+const FileIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    </svg>
+);
+
+const DownloadIcon: React.FC<{ className?: string }> = ({ className = "w-4 h-4" }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+    </svg>
+);
+
+const TrashIcon: React.FC<{ className?: string }> = ({ className = "w-4 h-4" }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+    </svg>
+);
+
 const ContractsNew: React.FC = () => {
     const [contractRecords, setContractRecords] = useState<ContractRecord[]>([]);
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -162,6 +198,11 @@ const ContractsNew: React.FC = () => {
         startDate: '',
         endRemarks: ''
     });
+
+    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    const [isDragging, setIsDragging] = useState(false);
+    const [documentsToDelete, setDocumentsToDelete] = useState<number[]>([]);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Helper functions
     const formatCurrency = (amount: number | string): string => {
@@ -281,6 +322,168 @@ const ContractsNew: React.FC = () => {
             return date.toISOString().split('T')[0];
         } catch {
             return '';
+        }
+    };
+
+    // File handling functions
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        setSelectedFiles(prev => [...prev, ...files]);
+    };
+
+    const removeFile = async (index: number) => {
+        const file = selectedFiles[index];
+        const result = await Swal.fire({
+            title: 'Remove File?',
+            text: `Are you sure you want to remove "${file.name}"? This action cannot be undone.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Yes, remove it!',
+            cancelButtonText: 'Cancel',
+            customClass: {
+                popup: 'rounded-2xl',
+                confirmButton: 'rounded-lg px-6 py-2 font-medium',
+                cancelButton: 'rounded-lg px-6 py-2 font-medium',
+            }
+        });
+
+        if (result.isConfirmed) {
+            setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+            
+            // Show success notification
+            await Swal.fire({
+                title: 'Removed!',
+                text: 'The file has been removed from your selection.',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false,
+                customClass: {
+                    popup: 'rounded-2xl',
+                }
+            });
+        }
+    };
+
+    const formatFileSize = (bytes: number): string => {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    };
+
+    const getFileIcon = (type: string | undefined) => {
+        if (!type) return '📎'; // Default icon if type is undefined/null
+        if (type.includes('image')) return '🖼️';
+        if (type.includes('pdf')) return '📄';
+        if (type.includes('document') || type.includes('word')) return '📝';
+        return '📎';
+    };
+
+    const downloadDocument = async (contractId: number, documentIndex: number, fileName: string) => {
+        try {
+            const response = await fetch(`/api/contracts/${contractId}/documents/${documentIndex}/download`);
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            } else {
+                throw new Error('Failed to download document');
+            }
+        } catch (error) {
+            console.error('Error downloading document:', error);
+        }
+    };
+
+    const markDocumentForDeletion = async (documentIndex: number) => {
+        if (!editingRecord?.documents || !editingRecord.documents[documentIndex]) {
+            await Swal.fire({
+                title: 'Error!',
+                text: 'Document not found.',
+                icon: 'error',
+                confirmButtonColor: '#3b82f6',
+                customClass: {
+                    popup: 'rounded-2xl',
+                }
+            });
+            return;
+        }
+
+        const document = editingRecord.documents[documentIndex];
+        const fileName = document.original_name || document.name || 'Unknown file';
+
+        const result = await Swal.fire({
+            title: 'Mark for Deletion?',
+            text: `"${fileName}" will be deleted when you click Update. Do you want to mark it for deletion?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Yes, mark it!',
+            cancelButtonText: 'Cancel',
+            customClass: {
+                popup: 'rounded-2xl',
+                confirmButton: 'rounded-lg px-6 py-2 font-medium',
+                cancelButton: 'rounded-lg px-6 py-2 font-medium',
+            }
+        });
+
+        if (result.isConfirmed) {
+            console.log('Marking document for deletion:', documentIndex, fileName);
+            setDocumentsToDelete(prev => [...prev, documentIndex]);
+            
+            // Show success notification
+            await Swal.fire({
+                title: 'Marked for Deletion!',
+                text: `"${fileName}" will be deleted when you update the contract. Click Cancel to abort changes.`,
+                icon: 'success',
+                timer: 3000,
+                showConfirmButton: false,
+                customClass: {
+                    popup: 'rounded-2xl',
+                }
+            });
+        }
+    };
+
+    const unmarkDocumentForDeletion = (documentIndex: number) => {
+        setDocumentsToDelete(prev => prev.filter(index => index !== documentIndex));
+    };
+
+    // Drag and drop handlers
+    const handleDragEnter = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+
+        const files = Array.from(e.dataTransfer.files);
+        if (files.length > 0) {
+            handleFileSelect({ target: { files } } as any);
         }
     };
 
@@ -405,6 +608,7 @@ const ContractsNew: React.FC = () => {
                         suppliersAmount: record.suppliers_amount || 0,
                         driversSalary: record.drivers_salary || 0,
                         revenue: record.revenue || 0,
+                        documents: Array.isArray(record.documents) ? record.documents : [],
                         startDate: record.start_date || '',
                         endRemarks: record.end_remarks || '',
                         vehicle: record.vehicle
@@ -529,6 +733,8 @@ const ContractsNew: React.FC = () => {
             startDate: '',
             endRemarks: ''
         });
+        setSelectedFiles([]);
+        setDocumentsToDelete([]);
         setIsEditing(false);
         setEditingRecord(null);
         setIsModalOpen(true);
@@ -538,6 +744,9 @@ const ContractsNew: React.FC = () => {
     const closeModal = () => {
         setIsModalOpen(false);
         setError(null);
+        setSelectedFiles([]);
+        setIsDragging(false);
+        setDocumentsToDelete([]);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -560,26 +769,63 @@ const ContractsNew: React.FC = () => {
                 }
             });
 
-            const apiData = {
-                particular: formData.particular,
-                vehicle_type: formData.vehicleType,
-                plate_number: formData.plateNumber,
-                owners_name: formData.ownersName,
-                company_assigned: formData.companyAssigned,
-                location_area: formData.locationArea,
-                drivers_name: formData.driversName,
-                amount_range: formData.amountRange,
-                '12m_vat': formData.twelveMonthVat,
-                contract_amount: parseFloat(String(formData.contractAmount)) || 0,
-                less_ewt: parseFloat(String(formData.lessEwt)) || 0,
-                final_amount: parseFloat(String(formData.finalAmount)) || 0,
-                remarks: formData.remarks,
-                suppliers_amount: parseFloat(String(formData.suppliersAmount)) || 0,
-                drivers_salary: parseFloat(String(formData.driversSalary)) || 0,
-                revenue: parseFloat(String(formData.revenue)) || 0,
-                start_date: formData.startDate,
-                end_remarks: formData.endRemarks
-            };
+            // Delete marked documents first if editing
+            if (isEditing && editingRecord && documentsToDelete.length > 0) {
+                console.log('Deleting marked documents during update:', documentsToDelete);
+                // Sort in descending order to delete from the end first (to maintain indices)
+                const sortedIndices = [...documentsToDelete].sort((a, b) => b - a);
+                
+                for (const documentIndex of sortedIndices) {
+                    try {
+                        console.log('Deleting document at index:', documentIndex);
+                        const response = await fetch(`/api/contracts/${editingRecord.id}/documents`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': getCSRFToken()
+                            },
+                            body: JSON.stringify({ document_index: documentIndex })
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error('Failed to delete document');
+                        }
+                        console.log('Successfully deleted document at index:', documentIndex);
+                    } catch (error) {
+                        console.error('Error deleting document:', error);
+                        // Continue with other deletions even if one fails
+                    }
+                }
+            }
+
+            // Create FormData for file uploads
+            const formDataToSend = new FormData();
+            
+            // Add all form fields
+            formDataToSend.append('particular', formData.particular);
+            formDataToSend.append('vehicle_type', formData.vehicleType);
+            formDataToSend.append('plate_number', formData.plateNumber);
+            formDataToSend.append('owners_name', formData.ownersName);
+            formDataToSend.append('company_assigned', formData.companyAssigned);
+            formDataToSend.append('location_area', formData.locationArea);
+            formDataToSend.append('drivers_name', formData.driversName);
+            formDataToSend.append('amount_range', formData.amountRange);
+            formDataToSend.append('12m_vat', formData.twelveMonthVat);
+            formDataToSend.append('contract_amount', String(parseFloat(String(formData.contractAmount)) || 0));
+            formDataToSend.append('less_ewt', String(parseFloat(String(formData.lessEwt)) || 0));
+            formDataToSend.append('final_amount', String(parseFloat(String(formData.finalAmount)) || 0));
+            formDataToSend.append('remarks', formData.remarks);
+            formDataToSend.append('suppliers_amount', String(parseFloat(String(formData.suppliersAmount)) || 0));
+            formDataToSend.append('drivers_salary', String(parseFloat(String(formData.driversSalary)) || 0));
+            formDataToSend.append('revenue', String(parseFloat(String(formData.revenue)) || 0));
+            formDataToSend.append('start_date', formData.startDate);
+            formDataToSend.append('end_remarks', formData.endRemarks);
+
+            // Add files if any
+            selectedFiles.forEach((file, index) => {
+                formDataToSend.append(`documents[]`, file);
+            });
 
             const url = isEditing && editingRecord 
                 ? `/api/contracts/${editingRecord.id}`
@@ -587,14 +833,19 @@ const ContractsNew: React.FC = () => {
             
             const method = isEditing ? 'PUT' : 'POST';
 
+            // For PUT requests with files, use POST with _method override
+            if (isEditing) {
+                formDataToSend.append('_method', 'PUT');
+            }
+
             const response = await fetch(url, {
-                method: method,
+                method: isEditing ? 'POST' : 'POST', // Always use POST for FormData
                 headers: {
                     'Accept': 'application/json',
-                    'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': getCSRFToken()
+                    // Don't set Content-Type, let browser set it with boundary
                 },
-                body: JSON.stringify(apiData)
+                body: formDataToSend
             });
 
             if (response.ok) {
@@ -618,6 +869,7 @@ const ContractsNew: React.FC = () => {
                         suppliersAmount: parseFloat(String(result.data.suppliers_amount)) || 0,
                         driversSalary: parseFloat(String(result.data.drivers_salary)) || 0,
                         revenue: parseFloat(String(result.data.revenue)) || 0,
+                        documents: result.data.documents || [],
                         startDate: result.data.start_date || '',
                         endRemarks: result.data.end_remarks || '',
                         vehicle: result.data.vehicle,
@@ -717,6 +969,8 @@ const ContractsNew: React.FC = () => {
         }
         
         setFormData(initialFormData);
+        setSelectedFiles([]);
+        setDocumentsToDelete([]);
         setIsEditing(true);
         setEditingRecord(record);
         setIsModalOpen(true);
@@ -834,9 +1088,9 @@ const ContractsNew: React.FC = () => {
                             <div className="p-3 rounded-xl bg-green-100">
                                 <MoneyIcon />
                             </div>
-                            <div className="ml-4">
+                            <div className="ml-4 min-w-0 flex-1">
                                 <p className="text-slate-600 text-sm font-medium">Contract Amount</p>
-                                <p className="text-2xl font-bold text-slate-900">{formatCurrency(totalContractAmount)}</p>
+                                <p className="text-lg font-bold text-slate-900 truncate cursor-help" title={formatCurrency(totalContractAmount)}>{formatCurrency(totalContractAmount)}</p>
                             </div>
                         </div>
                     </div>
@@ -846,9 +1100,9 @@ const ContractsNew: React.FC = () => {
                             <div className="p-3 rounded-xl bg-purple-100">
                                 <MoneyIcon />
                             </div>
-                            <div className="ml-4">
+                            <div className="ml-4 min-w-0 flex-1">
                                 <p className="text-slate-600 text-sm font-medium">Final Amount</p>
-                                <p className="text-2xl font-bold text-slate-900">{formatCurrency(totalFinalAmount)}</p>
+                                <p className="text-lg font-bold text-slate-900 truncate cursor-help" title={formatCurrency(totalFinalAmount)}>{formatCurrency(totalFinalAmount)}</p>
                             </div>
                         </div>
                     </div>
@@ -858,9 +1112,9 @@ const ContractsNew: React.FC = () => {
                             <div className="p-3 rounded-xl bg-orange-100">
                                 <MoneyIcon />
                             </div>
-                            <div className="ml-4">
+                            <div className="ml-4 min-w-0 flex-1">
                                 <p className="text-slate-600 text-sm font-medium">Total Revenue</p>
-                                <p className="text-2xl font-bold text-slate-900">{formatCurrency(totalRevenue)}</p>
+                                <p className="text-lg font-bold text-slate-900 truncate cursor-help" title={formatCurrency(totalRevenue)}>{formatCurrency(totalRevenue)}</p>
                             </div>
                         </div>
                     </div>
@@ -870,9 +1124,9 @@ const ContractsNew: React.FC = () => {
                             <div className="p-3 rounded-xl bg-emerald-100">
                                 <CustomerIcon />
                             </div>
-                            <div className="ml-4">
+                            <div className="ml-4 min-w-0 flex-1">
                                 <p className="text-slate-600 text-sm font-medium">Active Contracts</p>
-                                <p className="text-3xl font-bold text-slate-900">{activeContracts}</p>
+                                <p className="text-2xl font-bold text-slate-900">{activeContracts}</p>
                             </div>
                         </div>
                     </div>
@@ -1402,6 +1656,145 @@ const ContractsNew: React.FC = () => {
                                                 className="w-full p-2 border border-gray-300 rounded-md"
                                             />
                                         </div>
+
+                                        {/* Document Upload Section */}
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Documents
+                                            </label>
+                                            
+                                            {/* File Upload Area */}
+                                            <div 
+                                                className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                                                    isDragging 
+                                                        ? 'border-blue-500 bg-blue-50' 
+                                                        : 'border-gray-300 hover:border-gray-400'
+                                                }`}
+                                                onDragEnter={handleDragEnter}
+                                                onDragOver={handleDragOver}
+                                                onDragLeave={handleDragLeave}
+                                                onDrop={handleDrop}
+                                            >
+                                                <input
+                                                    ref={fileInputRef}
+                                                    type="file"
+                                                    multiple
+                                                    accept="image/*,.pdf,.doc,.docx,.txt"
+                                                    onChange={handleFileSelect}
+                                                    className="hidden"
+                                                />
+                                                
+                                                <div className="space-y-2">
+                                                    <UploadIcon className="w-8 h-8 text-gray-400 mx-auto" />
+                                                    <div className="text-sm text-gray-600">
+                                                        <span className="font-medium text-blue-600 cursor-pointer hover:text-blue-500"
+                                                              onClick={() => fileInputRef.current?.click()}>
+                                                            Click to upload
+                                                        </span>
+                                                        {' '}or drag and drop
+                                                    </div>
+                                                    <p className="text-xs text-gray-500">
+                                                        Images, PDF, DOC, DOCX, TXT files up to 10MB each
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {/* Selected Files List */}
+                                            {selectedFiles.length > 0 && (
+                                                <div className="mt-3 space-y-2 max-h-40 overflow-y-auto">
+                                                    {selectedFiles.map((file, index) => (
+                                                        <div key={`${file.name}-${index}`} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                                                            <div className="flex items-center space-x-2 flex-1 min-w-0">
+                                                                {getFileIcon(file.type)}
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="text-sm font-medium text-gray-900 truncate">
+                                                                        {file.name}
+                                                                    </p>
+                                                                    <p className="text-xs text-gray-500">
+                                                                        {formatFileSize(file.size)}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => removeFile(index)}
+                                                                className="ml-2 text-red-500 hover:text-red-700 p-1"
+                                                                title="Remove file"
+                                                            >
+                                                                <TrashIcon className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {/* Existing Documents (for editing) */}
+                                            {isEditing && editingRecord?.documents && editingRecord.documents.length > 0 && (
+                                                <div className="mt-4">
+                                                    <h4 className="text-sm font-medium text-gray-700 mb-2">Current Documents:</h4>
+                                                    <div className="space-y-2">
+                                                        {editingRecord.documents.map((doc: DocumentFile, index: number) => (
+                                                            <div key={`existing-${doc.id || index}`} className={`flex items-center justify-between p-2 rounded-md ${
+                                                                documentsToDelete.includes(index) 
+                                                                    ? 'bg-red-50 border border-red-200' 
+                                                                    : 'bg-blue-50'
+                                                            }`}>
+                                                                <div className="flex items-center space-x-2 flex-1 min-w-0">
+                                                                    {getFileIcon(doc.mime_type || doc.type)}
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <p className={`text-sm font-medium truncate ${
+                                                                            documentsToDelete.includes(index) 
+                                                                                ? 'text-red-600 line-through' 
+                                                                                : 'text-gray-900'
+                                                                        }`}>
+                                                                            {documentsToDelete.includes(index) && '🗑️ '}
+                                                                            {doc.original_name || doc.name || 'Unknown file'}
+                                                                        </p>
+                                                                        <p className={`text-xs ${
+                                                                            documentsToDelete.includes(index) 
+                                                                                ? 'text-red-500' 
+                                                                                : 'text-gray-500'
+                                                                        }`}>
+                                                                            {documentsToDelete.includes(index) && 'Will be deleted on update • '}
+                                                                            {formatFileSize(doc.size || 0)}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex space-x-1">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => downloadDocument(editingRecord?.id!, index, doc.original_name || doc.name || 'document')}
+                                                                        className="text-blue-500 hover:text-blue-700 p-1"
+                                                                        title="Download"
+                                                                    >
+                                                                        <DownloadIcon className="w-4 h-4" />
+                                                                    </button>
+                                                                    {documentsToDelete.includes(index) ? (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => unmarkDocumentForDeletion(index)}
+                                                                            className="text-orange-500 hover:text-orange-700 p-1"
+                                                                            title="Unmark for deletion"
+                                                                        >
+                                                                            <span className="text-xs">↶</span>
+                                                                        </button>
+                                                                    ) : (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => markDocumentForDeletion(index)}
+                                                                            className="text-red-500 hover:text-red-700 p-1"
+                                                                            title="Mark for deletion"
+                                                                        >
+                                                                            <TrashIcon className="w-4 h-4" />
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
 
                                     <div className="flex justify-end space-x-3 pt-4">
@@ -1572,6 +1965,38 @@ const ContractsNew: React.FC = () => {
                                                 </div>
                                             </div>
                                         </div>
+
+                                        {/* Documents Section */}
+                                        {viewRecord.documents && viewRecord.documents.length > 0 && (
+                                            <div className="bg-white border border-slate-200 rounded-xl p-6 mt-6">
+                                                <h4 className="text-lg font-semibold text-slate-900 mb-4">Documents</h4>
+                                                <div className="space-y-2">
+                                                    {viewRecord.documents.map((doc: DocumentFile, index: number) => (
+                                                        <div key={`view-${doc.id || index}`} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                                            <div className="flex items-center space-x-3">
+                                                                {getFileIcon(doc.mime_type || doc.type)}
+                                                                <div>
+                                                                    <p className="text-sm font-medium text-gray-900">
+                                                                        {doc.original_name || doc.name || 'Unknown file'}
+                                                                    </p>
+                                                                    <p className="text-xs text-gray-500">
+                                                                        {formatFileSize(doc.size || 0)} • {doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleDateString() : 'Unknown date'}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => downloadDocument(viewRecord.id, index, doc.original_name || doc.name || 'document')}
+                                                                className="text-blue-500 hover:text-blue-700 p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                                                                title="Download"
+                                                            >
+                                                                <DownloadIcon className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 

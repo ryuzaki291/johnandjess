@@ -48,6 +48,8 @@ Route::get('/contracts/{id}', [ContractController::class, 'show']);
 Route::put('/contracts/{id}', [ContractController::class, 'update']);
 Route::delete('/contracts/{id}', [ContractController::class, 'destroy']);
 Route::get('/contracts-vehicles', [ContractController::class, 'getVehicles']);
+Route::get('/contracts/{contractId}/documents/{documentIndex}/download', [ContractController::class, 'downloadDocument']);
+Route::delete('/contracts/{contractId}/documents', [ContractController::class, 'deleteDocument']);
 
 // Temporarily unprotected incident report routes for testing
 Route::get('/incident-reports', [IncidentReportController::class, 'index']);
