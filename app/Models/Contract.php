@@ -4,9 +4,37 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 class Contract extends Model
 {
+    /**
+     * Boot the model and add model events
+     */
+    protected static function boot()
+    {
+        parent::boot();
+        
+        // Delete associated documents when contract is deleted
+        static::deleting(function ($contract) {
+            if ($contract->documents && is_array($contract->documents)) {
+                \Log::info("Deleting documents for contract ID: {$contract->id}", [
+                    'document_count' => count($contract->documents)
+                ]);
+                
+                foreach ($contract->documents as $document) {
+                    if (isset($document['path'])) {
+                        $deleted = Storage::disk('public')->delete($document['path']);
+                        \Log::info("Document deletion result", [
+                            'path' => $document['path'],
+                            'deleted' => $deleted
+                        ]);
+                    }
+                }
+            }
+        });
+    }
+
     protected $fillable = [
         'particular',
         'vehicle_type',

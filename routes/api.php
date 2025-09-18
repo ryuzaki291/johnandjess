@@ -32,6 +32,8 @@ Route::get('/drivers-maintenance/{id}', [DriversMaintenanceController::class, 's
 Route::put('/drivers-maintenance/{id}', [DriversMaintenanceController::class, 'update']);
 Route::delete('/drivers-maintenance/{id}', [DriversMaintenanceController::class, 'destroy']);
 Route::get('/drivers-maintenance-vehicles', [DriversMaintenanceController::class, 'getVehicles']);
+Route::get('/drivers-maintenance/{id}/documents/{index}/download', [DriversMaintenanceController::class, 'downloadDocument']);
+Route::delete('/drivers-maintenance/{id}/documents/{index}', [DriversMaintenanceController::class, 'deleteDocument']);
 
 // Temporarily unprotected main maintenance routes for testing
 Route::get('/main-maintenance', [MainMaintenanceController::class, 'index']);
@@ -40,6 +42,8 @@ Route::get('/main-maintenance/{id}', [MainMaintenanceController::class, 'show'])
 Route::put('/main-maintenance/{id}', [MainMaintenanceController::class, 'update']);
 Route::delete('/main-maintenance/{id}', [MainMaintenanceController::class, 'destroy']);
 Route::get('/main-maintenance-vehicles', [MainMaintenanceController::class, 'getVehicles']);
+Route::get('/main-maintenance/{id}/documents/{index}/download', [MainMaintenanceController::class, 'downloadDocument']);
+Route::delete('/main-maintenance/{id}/documents/{index}', [MainMaintenanceController::class, 'deleteDocument']);
 
 // Temporarily unprotected contract routes for testing
 Route::get('/contracts', [ContractController::class, 'index']);

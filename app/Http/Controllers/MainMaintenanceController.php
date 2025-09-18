@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class MainMaintenanceController extends Controller
 {
@@ -50,14 +51,15 @@ class MainMaintenanceController extends Controller
                 'assignee_name' => 'required|string|max:255',
                 'region_assign' => 'required|string|max:255',
                 'supplier_name' => 'required|string|max:255',
-                'vehicle_details' => 'required|string|max:255',
-                'plate_number' => 'required|string|exists:vehicles,plate_number',
+                'vehicle_details' => 'required|string',
+                'plate_number' => 'required|string|max:50',
                 'odometer_record' => 'required|string|max:255',
-                'date_of_pms' => 'required|string|max:255',
-                'performed' => 'required|string|max:255',
-                'amount' => 'required|numeric|min:0',
-                'qty' => 'required|numeric|min:0',
-                'remarks' => 'nullable|string'
+                'remarks' => 'nullable|string',
+                'date_of_pms' => 'required|string',
+                'performed' => 'required|string',
+                'amount' => 'required|numeric',
+                'qty' => 'required|integer',
+                'documents.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240'
             ]);
 
             if ($validator->fails()) {
@@ -69,6 +71,8 @@ class MainMaintenanceController extends Controller
                 ], 422);
             }
 
+            $validated = $validator->validated();
+
             // Get authenticated user or use default creator
             $authUser = Auth::user();
             Log::info('Auth user: ' . ($authUser ? $authUser->id : 'null'));
@@ -76,6 +80,24 @@ class MainMaintenanceController extends Controller
 
             $data = $request->all();
             $data['creator'] = $authUser ? $authUser->id : 1; // Fallback to user 1 for testing
+
+            // Handle file uploads
+            $documents = [];
+            if ($request->hasFile('documents')) {
+                foreach ($request->file('documents') as $file) {
+                    $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                    $path = $file->storeAs('maintenance_documents', $filename, 'public');
+                    
+                    $documents[] = [
+                        'original_name' => $file->getClientOriginalName(),
+                        'filename' => $filename,
+                        'path' => $path,
+                        'size' => $file->getSize(),
+                        'mime_type' => $file->getMimeType()
+                    ];
+                }
+            }
+            $data['documents'] = $documents;
 
             Log::info('Creating main maintenance record with data: ' . json_encode($data));
 
@@ -146,7 +168,10 @@ class MainMaintenanceController extends Controller
                 'performed' => 'required|string|max:255',
                 'amount' => 'required|numeric|min:0',
                 'qty' => 'required|numeric|min:0',
-                'remarks' => 'nullable|string'
+                'remarks' => 'nullable|string',
+                'documents.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240',
+                'documents_to_delete' => 'nullable|array',
+                'documents_to_delete.*' => 'integer'
             ]);
 
             if ($validator->fails()) {
@@ -157,7 +182,44 @@ class MainMaintenanceController extends Controller
                 ], 422);
             }
 
-            $mainMaintenance->update($request->all());
+            $data = $request->except(['documents', 'documents_to_delete']);
+            
+            // Handle existing documents and deletions
+            $existingDocuments = $mainMaintenance->documents ?? [];
+            $documentsToDelete = $request->input('documents_to_delete', []);
+            
+            // Remove documents marked for deletion
+            if (!empty($documentsToDelete)) {
+                foreach ($documentsToDelete as $indexToDelete) {
+                    if (isset($existingDocuments[$indexToDelete])) {
+                        // Delete physical file
+                        Storage::disk('public')->delete($existingDocuments[$indexToDelete]['path']);
+                        unset($existingDocuments[$indexToDelete]);
+                    }
+                }
+                // Re-index array
+                $existingDocuments = array_values($existingDocuments);
+            }
+            
+            // Handle new file uploads
+            if ($request->hasFile('documents')) {
+                foreach ($request->file('documents') as $file) {
+                    $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                    $path = $file->storeAs('maintenance_documents', $filename, 'public');
+                    
+                    $existingDocuments[] = [
+                        'original_name' => $file->getClientOriginalName(),
+                        'filename' => $filename,
+                        'path' => $path,
+                        'size' => $file->getSize(),
+                        'mime_type' => $file->getMimeType()
+                    ];
+                }
+            }
+            
+            $data['documents'] = $existingDocuments;
+            
+            $mainMaintenance->update($data);
             $mainMaintenance->load(['vehicle', 'createdBy']);
             
             Log::info('Main maintenance record updated successfully');
@@ -223,6 +285,85 @@ class MainMaintenanceController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error fetching vehicles',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Download a document
+     */
+    public function downloadDocument($id, $index)
+    {
+        try {
+            $mainMaintenance = MainMaintenance::findOrFail($id);
+            $documents = $mainMaintenance->documents ?? [];
+            
+            if (!isset($documents[$index])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Document not found'
+                ], 404);
+            }
+            
+            $document = $documents[$index];
+            $filePath = storage_path('app/public/' . $document['path']);
+            
+            if (!file_exists($filePath)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'File not found on server'
+                ], 404);
+            }
+            
+            return response()->download($filePath, $document['original_name']);
+            
+        } catch (\Exception $e) {
+            Log::error('Error downloading document: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error downloading document',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete a specific document
+     */
+    public function deleteDocument($id, $index)
+    {
+        try {
+            $mainMaintenance = MainMaintenance::findOrFail($id);
+            $documents = $mainMaintenance->documents ?? [];
+            
+            if (!isset($documents[$index])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Document not found'
+                ], 404);
+            }
+            
+            // Delete physical file
+            Storage::disk('public')->delete($documents[$index]['path']);
+            
+            // Remove document from array and re-index
+            unset($documents[$index]);
+            $documents = array_values($documents);
+            
+            // Update the record
+            $mainMaintenance->update(['documents' => $documents]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Document deleted successfully'
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error deleting document: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting document',
                 'error' => $e->getMessage()
             ], 500);
         }

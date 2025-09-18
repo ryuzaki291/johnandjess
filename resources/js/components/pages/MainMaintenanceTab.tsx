@@ -8,6 +8,14 @@ interface Vehicle {
     vehicle_status?: string;
 }
 
+interface Document {
+    original_name: string;
+    filename: string;
+    path: string;
+    size: number;
+    mime_type: string;
+}
+
 interface MainMaintenanceRecord {
     id: number;
     assigneeName: string;
@@ -21,6 +29,7 @@ interface MainMaintenanceRecord {
     performed: string;
     amount: number;
     qty: number;
+    documents?: Document[];
     vehicle?: Vehicle;
     created_at?: string;
     updated_at?: string;
@@ -147,6 +156,12 @@ const MainMaintenanceTab: React.FC = () => {
     const [sortBy, setSortBy] = useState<'created_at' | 'updated_at'>('created_at');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
     const itemsPerPage = 10;
+    
+    // Document-related state
+    const [documents, setDocuments] = useState<File[]>([]);
+    const [existingDocuments, setExistingDocuments] = useState<Document[]>([]);
+    const [documentsToDelete, setDocumentsToDelete] = useState<number[]>([]);
+    const [isDragging, setIsDragging] = useState(false);
     
     const [formData, setFormData] = useState({
         assigneeName: '',
@@ -409,6 +424,117 @@ const MainMaintenanceTab: React.FC = () => {
     const closeModal = () => {
         setIsModalOpen(false);
         setError(null);
+        // Clear document-related state
+        setDocuments([]);
+        setExistingDocuments([]);
+        setDocumentsToDelete([]);
+    };
+
+    // Document handling functions
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const newFiles = Array.from(e.target.files);
+            setDocuments(prev => [...prev, ...newFiles]);
+        }
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        setIsDragging(false);
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            const newFiles = Array.from(files);
+            setDocuments(prev => [...prev, ...newFiles]);
+        }
+    };
+
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        setIsDragging(false);
+    };
+
+    const removeDocument = (index: number) => {
+        setDocuments(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const markDocumentForDeletion = (index: number) => {
+        Swal.fire({
+            title: 'Mark for Deletion?',
+            text: 'This document will be deleted when you update the record.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, mark for deletion',
+            cancelButtonText: 'Cancel',
+            customClass: {
+                popup: 'rounded-2xl',
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                setDocumentsToDelete(prev => [...prev, index]);
+            }
+        });
+    };
+
+    const unmarkDocumentForDeletion = (index: number) => {
+        setDocumentsToDelete(prev => prev.filter(i => i !== index));
+    };
+
+    const getFileIcon = (fileName: string, mimeType?: string) => {
+        const extension = fileName.split('.').pop()?.toLowerCase();
+        const mime = mimeType?.toLowerCase() || '';
+        
+        if (mime?.includes('image') || ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(extension || '')) {
+            return '🖼️';
+        } else if (mime?.includes('pdf') || extension === 'pdf') {
+            return '📄';
+        } else if (mime?.includes('word') || ['doc', 'docx'].includes(extension || '')) {
+            return '📝';
+        } else if (mime?.includes('excel') || ['xls', 'xlsx'].includes(extension || '')) {
+            return '📊';
+        } else if (mime?.includes('video')) {
+            return '🎥';
+        } else {
+            return '📁';
+        }
+    };
+
+    const downloadDocument = async (index: number) => {
+        if (!editingRecord) return;
+        
+        try {
+            const response = await fetch(`/api/main-maintenance/${editingRecord.id}/documents/${index}/download`);
+            if (response.ok) {
+                const blob = await response.blob();
+                const document = existingDocuments[index];
+                const url = window.URL.createObjectURL(blob);
+                const a = window.document.createElement('a');
+                a.href = url;
+                a.download = document.original_name;
+                window.document.body.appendChild(a);
+                a.click();
+                window.document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            } else {
+                throw new Error('Failed to download document');
+            }
+        } catch (error) {
+            Swal.fire({
+                title: 'Download Failed',
+                text: 'There was an error downloading the document.',
+                icon: 'error',
+                customClass: {
+                    popup: 'rounded-2xl',
+                }
+            });
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -433,34 +559,50 @@ const MainMaintenanceTab: React.FC = () => {
                 }
             });
 
-            const apiData = {
-                assignee_name: formData.assigneeName,
-                region_assign: formData.regionAssign,
-                supplier_name: formData.supplierName,
-                vehicle_details: formData.vehicleDetails,
-                plate_number: formData.plateNumber,
-                odometer_record: formData.odometerRecord,
-                remarks: formData.remarks,
-                date_of_pms: formData.dateOfPms,
-                performed: formData.performed,
-                amount: formData.amount,
-                qty: formData.qty
-            };
+            // Create FormData for file uploads
+            const formDataToSend = new FormData();
+            formDataToSend.append('assignee_name', formData.assigneeName);
+            formDataToSend.append('region_assign', formData.regionAssign);
+            formDataToSend.append('supplier_name', formData.supplierName);
+            formDataToSend.append('vehicle_details', formData.vehicleDetails);
+            formDataToSend.append('plate_number', formData.plateNumber);
+            formDataToSend.append('odometer_record', formData.odometerRecord);
+            formDataToSend.append('remarks', formData.remarks);
+            formDataToSend.append('date_of_pms', formData.dateOfPms);
+            formDataToSend.append('performed', formData.performed);
+            formDataToSend.append('amount', formData.amount.toString());
+            formDataToSend.append('qty', formData.qty.toString());
+
+            // Add new documents
+            documents.forEach((file) => {
+                formDataToSend.append('documents[]', file);
+            });
+
+            // Add documents to delete (for editing)
+            if (isEditing && documentsToDelete.length > 0) {
+                documentsToDelete.forEach(index => {
+                    formDataToSend.append('documents_to_delete[]', index.toString());
+                });
+            }
+
+            // For PUT requests with FormData, use POST with _method field
+            if (isEditing) {
+                formDataToSend.append('_method', 'PUT');
+            }
 
             const url = isEditing && editingRecord 
                 ? `/api/main-maintenance/${editingRecord.id}`
                 : '/api/main-maintenance';
             
-            const method = isEditing ? 'PUT' : 'POST';
+            const method = 'POST';
 
             const response = await fetch(url, {
                 method: method,
                 headers: {
                     'Accept': 'application/json',
-                    'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': getCSRFToken()
                 },
-                body: JSON.stringify(apiData)
+                body: formDataToSend
             });
 
             Swal.close();
@@ -481,6 +623,7 @@ const MainMaintenanceTab: React.FC = () => {
                         performed: result.data.performed,
                         amount: parseFloat(result.data.amount) || 0,
                         qty: parseFloat(result.data.qty) || 0,
+                        documents: result.data.documents || [],
                         vehicle: result.data.vehicle,
                         created_at: result.data.created_at,
                         updated_at: result.data.updated_at
@@ -551,6 +694,9 @@ const MainMaintenanceTab: React.FC = () => {
             amount: record.amount,
             qty: record.qty
         });
+        setExistingDocuments(record.documents || []);
+        setDocuments([]);
+        setDocumentsToDelete([]);
         setIsEditing(true);
         setEditingRecord(record);
         setIsModalOpen(true);
@@ -1208,6 +1354,136 @@ const MainMaintenanceTab: React.FC = () => {
                                         rows={3}
                                         className="w-full p-2 border border-gray-300 rounded-md"
                                     />
+                                </div>
+
+                                {/* Document Upload Section */}
+                                <div className="space-y-4">
+                                    <label className="block text-sm font-medium text-gray-700">
+                                        Documents
+                                    </label>
+                                    
+                                    {/* File Upload Area */}
+                                    <div
+                                        className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                                            isDragging 
+                                                ? 'border-blue-400 bg-blue-50' 
+                                                : 'border-gray-300 hover:border-gray-400'
+                                        }`}
+                                        onDrop={handleDrop}
+                                        onDragOver={handleDragOver}
+                                        onDragLeave={handleDragLeave}
+                                    >
+                                        <div className="flex flex-col items-center">
+                                            <svg className="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                            </svg>
+                                            <p className="text-sm text-gray-600 mb-2">
+                                                Drag and drop files here, or click to select
+                                            </p>
+                                            <input
+                                                type="file"
+                                                multiple
+                                                onChange={handleFileSelect}
+                                                className="hidden"
+                                                id="file-upload"
+                                                accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
+                                            />
+                                            <label
+                                                htmlFor="file-upload"
+                                                className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 cursor-pointer"
+                                            >
+                                                Choose Files
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    {/* New Documents List */}
+                                    {documents.length > 0 && (
+                                        <div>
+                                            <h4 className="text-sm font-medium text-gray-700 mb-2">New Documents ({documents.length})</h4>
+                                            <div className="space-y-2">
+                                                {documents.map((file, index) => (
+                                                    <div key={index} className="flex items-center justify-between p-2 bg-green-50 border border-green-200 rounded-md">
+                                                        <div className="flex items-center">
+                                                            <span className="text-lg mr-2">{getFileIcon(file.name, file.type)}</span>
+                                                            <span className="text-sm font-medium text-gray-700">{file.name}</span>
+                                                            <span className="text-xs text-gray-500 ml-2">({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeDocument(index)}
+                                                            className="text-red-600 hover:text-red-800 font-medium text-sm"
+                                                        >
+                                                            Remove
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Existing Documents List (for editing) */}
+                                    {isEditing && existingDocuments.length > 0 && (
+                                        <div>
+                                            <h4 className="text-sm font-medium text-gray-700 mb-2">Existing Documents ({existingDocuments.length})</h4>
+                                            <div className="space-y-2">
+                                                {existingDocuments.map((document, index) => {
+                                                    const isMarkedForDeletion = documentsToDelete.includes(index);
+                                                    return (
+                                                        <div 
+                                                            key={index} 
+                                                            className={`flex items-center justify-between p-2 border rounded-md ${
+                                                                isMarkedForDeletion 
+                                                                    ? 'bg-red-50 border-red-200 opacity-60' 
+                                                                    : 'bg-gray-50 border-gray-200'
+                                                            }`}
+                                                        >
+                                                            <div className="flex items-center">
+                                                                <span className="text-lg mr-2">{getFileIcon(document.original_name, document.mime_type)}</span>
+                                                                <span className={`text-sm font-medium ${isMarkedForDeletion ? 'text-red-600 line-through' : 'text-gray-700'}`}>
+                                                                    {document.original_name}
+                                                                </span>
+                                                                <span className="text-xs text-gray-500 ml-2">
+                                                                    ({(document.size / 1024 / 1024).toFixed(2)} MB)
+                                                                </span>
+                                                                {isMarkedForDeletion && (
+                                                                    <span className="text-xs text-red-600 ml-2 font-medium">(Will be deleted)</span>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex space-x-2">
+                                                                {!isMarkedForDeletion ? (
+                                                                    <>
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => downloadDocument(index)}
+                                                                            className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                                                                        >
+                                                                            Download
+                                                                        </button>
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => markDocumentForDeletion(index)}
+                                                                            className="text-red-600 hover:text-red-800 font-medium text-sm"
+                                                                        >
+                                                                            Remove
+                                                                        </button>
+                                                                    </>
+                                                                ) : (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => unmarkDocumentForDeletion(index)}
+                                                                        className="text-green-600 hover:text-green-800 font-medium text-sm"
+                                                                    >
+                                                                        Undo
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="flex justify-end space-x-3 pt-4">
