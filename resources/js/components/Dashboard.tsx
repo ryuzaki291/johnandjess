@@ -743,7 +743,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                                 </div>
                             </div>
                             <div className="p-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     <div className="bg-gray-50 p-4 rounded-lg">
                                         <p className="text-sm font-medium text-gray-500 mb-1">Vehicle Type</p>
                                         <p className="text-lg font-semibold text-gray-900">{searchResults.vehicle.vehicle_type}</p>
@@ -755,6 +755,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                                     <div className="bg-gray-50 p-4 rounded-lg">
                                         <p className="text-sm font-medium text-gray-500 mb-1">Owner</p>
                                         <p className="text-lg font-semibold text-gray-900">{searchResults.vehicle.vehicle_owner}</p>
+                                    </div>
+                                    <div className="bg-gray-50 p-4 rounded-lg">
+                                        <p className="text-sm font-medium text-gray-500 mb-1">Company Name</p>
+                                        <p className="text-lg font-semibold text-gray-900">{searchResults.vehicle.company_name || 'Not specified'}</p>
                                     </div>
                                     <div className="bg-gray-50 p-4 rounded-lg">
                                         <p className="text-sm font-medium text-gray-500 mb-1">Status</p>
@@ -781,6 +785,20 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                                     <div className="bg-gray-50 p-4 rounded-lg">
                                         <p className="text-sm font-medium text-gray-500 mb-1">Owner Address</p>
                                         <p className="text-sm text-gray-700">{searchResults.vehicle.vehicle_owner_address || 'Not specified'}</p>
+                                    </div>
+                                    <div className="bg-gray-50 p-4 rounded-lg">
+                                        <p className="text-sm font-medium text-gray-500 mb-1">Created By</p>
+                                        <p className="text-lg font-semibold text-gray-900">{searchResults.vehicle.creator || 'Not specified'}</p>
+                                    </div>
+                                    <div className="bg-gray-50 p-4 rounded-lg">
+                                        <p className="text-sm font-medium text-gray-500 mb-1">Creation Date</p>
+                                        <p className="text-lg font-semibold text-gray-900">
+                                            {searchResults.vehicle.creation_date ? new Date(searchResults.vehicle.creation_date).toLocaleDateString('en-US', {
+                                                year: 'numeric',
+                                                month: 'long',
+                                                day: 'numeric'
+                                            }) : 'Not specified'}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -878,14 +896,16 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                                     </div>
                                 </div>
                                 <div className="overflow-x-auto">
-                                    <div className="min-w-full" style={{ minWidth: '1600px' }}>
+                                    <div className="min-w-full" style={{ minWidth: '1800px' }}>
                                         <div className="bg-gray-50 flex text-xs font-semibold text-gray-700 uppercase tracking-wider border-b border-gray-200">
                                             <div className="px-3 py-3 w-20">Period</div>
                                             <div className="px-3 py-3 w-20">Dept</div>
+                                            <div className="px-3 py-3 w-28">Vehicle Unit</div>
                                             <div className="px-3 py-3 w-32">Customer</div>
                                             <div className="px-3 py-3 w-40">Destination</div>
                                             <div className="px-3 py-3 w-24">From</div>
                                             <div className="px-3 py-3 w-24">To</div>
+                                            <div className="px-3 py-3 w-48">Particular</div>
                                             <div className="px-3 py-3 w-28">Allowance</div>
                                             <div className="px-3 py-3 w-28">Driver Pay</div>
                                             <div className="px-3 py-3 w-20">Status</div>
@@ -900,6 +920,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                                                 <div key={index} className="flex text-sm hover:bg-gray-50 transition-colors">
                                                     <div className="px-3 py-4 w-20 font-medium text-gray-900">{trip.month_year}</div>
                                                     <div className="px-3 py-4 w-20 text-gray-600">{trip.department}</div>
+                                                    <div className="px-3 py-4 w-28 text-gray-600">{trip.vehicle_unit || 'N/A'}</div>
                                                     <div className="px-3 py-4 w-32 font-medium text-gray-900 truncate" title={trip.customer_name}>{trip.customer_name}</div>
                                                     <div className="px-3 py-4 w-40 text-gray-700 truncate" title={trip.destination}>{trip.destination}</div>
                                                     <div className="px-3 py-4 w-24 text-gray-600">
@@ -908,6 +929,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                                                     <div className="px-3 py-4 w-24 text-gray-600">
                                                         {new Date(trip.date_to).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}
                                                     </div>
+                                                    <div className="px-3 py-4 w-48 text-gray-700 truncate" title={trip.particular}>{trip.particular || 'N/A'}</div>
                                                     <div className="px-3 py-4 w-28 font-semibold text-green-700">₱{trip.total_allowance?.toLocaleString()}</div>
                                                     <div className="px-3 py-4 w-28 font-semibold text-blue-700">₱{trip.drivers_networth?.toLocaleString()}</div>
                                                     <div className="px-3 py-4 w-20">
@@ -966,6 +988,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Next PMS</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registration Date</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parts</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documents</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created By</th>
                                             </tr>
                                         </thead>
@@ -985,6 +1008,18 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{maintenance.next_pms}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{maintenance.registration_month_date}</td>
                                                     <td className="px-6 py-4 text-sm text-gray-900">{maintenance.parts}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                        {maintenance.documents && maintenance.documents.length > 0 ? (
+                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                </svg>
+                                                                {maintenance.documents.length}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-gray-400">No docs</span>
+                                                        )}
+                                                    </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                         {maintenance.created_by?.name || 'N/A'}
                                                     </td>
@@ -1017,6 +1052,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Performed</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documents</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created By</th>
                                             </tr>
                                         </thead>
@@ -1036,6 +1072,18 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                                                     <td className="px-6 py-4 text-sm text-gray-900">{maintenance.performed}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{maintenance.amount}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{maintenance.qty}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                        {maintenance.documents && maintenance.documents.length > 0 ? (
+                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                </svg>
+                                                                {maintenance.documents.length}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-gray-400">No docs</span>
+                                                        )}
+                                                    </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                         {maintenance.created_by?.name || 'N/A'}
                                                     </td>
@@ -1072,8 +1120,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remarks</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suppliers Amount</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Drivers Salary</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Date</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Remarks</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documents</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created By</th>
                                             </tr>
                                         </thead>
@@ -1096,9 +1146,28 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{contract.suppliers_amount}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{contract.drivers_salary}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                        {contract.revenue ? (
+                                                            <span className="font-semibold text-green-700">₱{contract.revenue}</span>
+                                                        ) : (
+                                                            <span className="text-gray-400">N/A</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                         {new Date(contract.start_date).toLocaleDateString()}
                                                     </td>
                                                     <td className="px-6 py-4 text-sm text-gray-900">{contract.end_remarks}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                        {contract.documents && contract.documents.length > 0 ? (
+                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                </svg>
+                                                                {contract.documents.length}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-gray-400">No docs</span>
+                                                        )}
+                                                    </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                         {contract.created_by?.name || 'N/A'}
                                                     </td>
@@ -1133,6 +1202,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reporter Position</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Damage Description</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estimated Cost</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Images</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documents</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Severity</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action Taken</th>
@@ -1158,6 +1229,30 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{incident.reporter_position}</td>
                                                     <td className="px-6 py-4 text-sm text-gray-900">{incident.damage_description}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{incident.estimated_cost}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                        {incident.incident_images && incident.incident_images.length > 0 ? (
+                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                                </svg>
+                                                                {incident.incident_images.length}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-gray-400">No images</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                        {incident.incident_documents && incident.incident_documents.length > 0 ? (
+                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                </svg>
+                                                                {incident.incident_documents.length}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-gray-400">No docs</span>
+                                                        )}
+                                                    </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                                                             incident.severity_level === 'High' 

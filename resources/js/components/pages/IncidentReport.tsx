@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
+import { getStorageUrl, getFallbackImageUrl, getStorageUrlWithFallback, checkImageExists } from '../../utils/assetHelper';
 
 // Helper function to get CSRF token
 const getCsrfToken = (): string | null => {
@@ -1481,47 +1482,111 @@ const IncidentReportPage: React.FC = () => {
 
                                 {/* Existing Files Display for Edit Mode */}
                                 {editingIncident && (editingIncident.incident_images?.length || editingIncident.incident_documents?.length) && (
-                                    <div className="border-t pt-4">
-                                        <h4 className="text-lg font-medium text-gray-900 mb-3">Existing Files</h4>
+                                    <div className="bg-slate-50 rounded-xl p-6 border border-slate-200">
+                                        <h4 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                            Existing Files
+                                        </h4>
                                         
                                         {editingIncident.incident_images && editingIncident.incident_images.length > 0 && (
-                                            <div className="mb-4">
-                                                <h5 className="text-sm font-medium text-gray-700 mb-2">Images:</h5>
-                                                <div className="space-y-2">
-                                                    {editingIncident.incident_images.map((imagePath, index) => (
-                                                        <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-                                                            <span className="text-sm text-gray-600">{imagePath.split('/').pop()}</span>
-                                                            <a 
-                                                                href={`/storage/${imagePath}`} 
-                                                                target="_blank" 
-                                                                rel="noopener noreferrer"
-                                                                className="text-blue-600 hover:text-blue-800 text-sm"
-                                                            >
-                                                                View
-                                                            </a>
-                                                        </div>
-                                                    ))}
+                                            <div className="mb-6">
+                                                <h5 className="text-sm font-bold text-slate-700 mb-3 flex items-center">
+                                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                    </svg>
+                                                    Images ({editingIncident.incident_images.length})
+                                                </h5>
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                                    {editingIncident.incident_images.map((imagePath, index) => {
+                                                        const { url, fallbackUrl, onError } = getStorageUrlWithFallback(imagePath);
+                                                        const fileName = imagePath.split('/').pop() || 'Unknown image';
+                                                        
+                                                        return (
+                                                            <div key={index} className="relative group bg-white rounded-lg border border-slate-200 overflow-hidden">
+                                                                <img 
+                                                                    src={url}
+                                                                    alt={`Existing image ${index + 1}`}
+                                                                    className="w-full h-24 object-cover"
+                                                                    onError={onError}
+                                                                />
+                                                                <div className="p-2">
+                                                                    <p className="text-xs text-slate-600 truncate" title={fileName}>{fileName}</p>
+                                                                    <div className="flex space-x-1 mt-1">
+                                                                        <a 
+                                                                            href={url} 
+                                                                            target="_blank" 
+                                                                            rel="noopener noreferrer"
+                                                                            className="inline-flex items-center px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs rounded transition-colors"
+                                                                        >
+                                                                            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                            </svg>
+                                                                            View
+                                                                        </a>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
                                         )}
 
                                         {editingIncident.incident_documents && editingIncident.incident_documents.length > 0 && (
                                             <div>
-                                                <h5 className="text-sm font-medium text-gray-700 mb-2">Documents:</h5>
+                                                <h5 className="text-sm font-bold text-slate-700 mb-3 flex items-center">
+                                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    </svg>
+                                                    Documents ({editingIncident.incident_documents.length})
+                                                </h5>
                                                 <div className="space-y-2">
-                                                    {editingIncident.incident_documents.map((docPath, index) => (
-                                                        <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-                                                            <span className="text-sm text-gray-600">{docPath.split('/').pop()}</span>
-                                                            <a 
-                                                                href={`/storage/${docPath}`} 
-                                                                target="_blank" 
-                                                                rel="noopener noreferrer"
-                                                                className="text-blue-600 hover:text-blue-800 text-sm"
-                                                            >
-                                                                Download
-                                                            </a>
-                                                        </div>
-                                                    ))}
+                                                    {editingIncident.incident_documents.map((docPath, index) => {
+                                                        const docUrl = getStorageUrl(docPath);
+                                                        const fileName = docPath.split('/').pop() || 'Unknown file';
+                                                        const fileExtension = fileName.split('.').pop()?.toLowerCase() || '';
+                                                        
+                                                        return (
+                                                            <div key={index} className="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors">
+                                                                <div className="flex items-center">
+                                                                    <div className="w-8 h-8 bg-slate-100 rounded flex items-center justify-center mr-3">
+                                                                        <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                        </svg>
+                                                                    </div>
+                                                                    <div>
+                                                                        <p className="text-sm font-medium text-slate-900">{fileName}</p>
+                                                                        <p className="text-xs text-slate-500 uppercase">{fileExtension} file</p>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex space-x-2">
+                                                                    <a 
+                                                                        href={docUrl} 
+                                                                        target="_blank" 
+                                                                        rel="noopener noreferrer"
+                                                                        className="inline-flex items-center px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded transition-colors"
+                                                                    >
+                                                                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                        </svg>
+                                                                        View
+                                                                    </a>
+                                                                    <a 
+                                                                        href={docUrl} 
+                                                                        download={fileName}
+                                                                        className="inline-flex items-center px-3 py-1 bg-green-100 hover:bg-green-200 text-green-700 text-xs font-medium rounded transition-colors"
+                                                                    >
+                                                                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3" />
+                                                                        </svg>
+                                                                        Download
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
                                         )}
@@ -1753,33 +1818,45 @@ const IncidentReportPage: React.FC = () => {
                                             <div className="mb-4">
                                                 <h5 className="text-sm font-medium text-gray-700 mb-2">Images ({viewingIncident.incident_images.length})</h5>
                                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                                    {viewingIncident.incident_images.map((imagePath, index) => (
-                                                        <div key={index} className="relative">
-                                                            <img 
-                                                                src={`/storage/${imagePath}`} 
-                                                                alt={`Incident image ${index + 1}`}
-                                                                className="w-full h-24 object-cover rounded border"
-                                                                onError={(e) => {
-                                                                    console.error('Failed to load image:', `/storage/${imagePath}`);
-                                                                    e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="%23f3f4f6"/><text x="50" y="50" text-anchor="middle" fill="%236b7280" font-size="12">Image Error</text></svg>';
-                                                                }}
-                                                                onLoad={() => {
-                                                                    console.log('Successfully loaded image:', `/storage/${imagePath}`);
-                                                                }}
-                                                            />
-                                                            <a 
-                                                                href={`/storage/${imagePath}`} 
-                                                                target="_blank" 
-                                                                rel="noopener noreferrer"
-                                                                className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-30 flex items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity"
-                                                                onClick={(e) => {
-                                                                    console.log('Opening image:', `/storage/${imagePath}`);
-                                                                }}
-                                                            >
-                                                                <span className="text-sm font-medium">View</span>
-                                                            </a>
-                                                        </div>
-                                                    ))}
+                                                    {viewingIncident.incident_images.map((imagePath, index) => {
+                                                        const { url, fallbackUrl, onError } = getStorageUrlWithFallback(imagePath);
+                                                        return (
+                                                            <div key={index} className="relative group">
+                                                                <img 
+                                                                    src={url} 
+                                                                    alt={`Incident image ${index + 1}`}
+                                                                    className="w-full h-24 object-cover rounded border transition-transform group-hover:scale-105"
+                                                                    onError={onError}
+                                                                    onLoad={() => {
+                                                                        console.log('Successfully loaded image:', url);
+                                                                    }}
+                                                                />
+                                                                <a 
+                                                                    href={url} 
+                                                                    target="_blank" 
+                                                                    rel="noopener noreferrer"
+                                                                    className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-30 flex items-center justify-center text-white opacity-0 hover:opacity-100 transition-all duration-200 rounded"
+                                                                    onClick={(e) => {
+                                                                        console.log('Opening image:', url);
+                                                                        // Check if image exists before opening
+                                                                        checkImageExists(url).then(exists => {
+                                                                            if (!exists) {
+                                                                                e.preventDefault();
+                                                                                alert('Image could not be loaded. Please check the server configuration.');
+                                                                            }
+                                                                        });
+                                                                    }}
+                                                                >
+                                                                    <div className="flex flex-col items-center">
+                                                                        <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                                                        </svg>
+                                                                        <span className="text-xs font-medium">View</span>
+                                                                    </div>
+                                                                </a>
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
                                         )}
@@ -1788,25 +1865,68 @@ const IncidentReportPage: React.FC = () => {
                                             <div>
                                                 <h5 className="text-sm font-medium text-gray-700 mb-2">Documents ({viewingIncident.incident_documents.length})</h5>
                                                 <div className="space-y-2">
-                                                    {viewingIncident.incident_documents.map((docPath, index) => (
-                                                        <div key={index} className="flex items-center justify-between bg-white p-3 rounded border">
-                                                            <div className="flex items-center">
-                                                                <span className="text-2xl mr-3">📄</span>
-                                                                <span className="text-sm text-gray-600">{docPath.split('/').pop()}</span>
+                                                    {viewingIncident.incident_documents.map((docPath, index) => {
+                                                        const docUrl = getStorageUrl(docPath);
+                                                        const fileName = docPath.split('/').pop() || 'Unknown file';
+                                                        const fileExtension = fileName.split('.').pop()?.toLowerCase() || '';
+                                                        
+                                                        // Get appropriate icon based on file extension
+                                                        const getFileIcon = (ext: string) => {
+                                                            switch (ext) {
+                                                                case 'pdf':
+                                                                    return '📄';
+                                                                case 'doc':
+                                                                case 'docx':
+                                                                    return '📝';
+                                                                case 'txt':
+                                                                    return '📃';
+                                                                default:
+                                                                    return '📁';
+                                                            }
+                                                        };
+                                                        
+                                                        return (
+                                                            <div key={index} className="flex items-center justify-between bg-white p-3 rounded border hover:border-blue-300 transition-colors">
+                                                                <div className="flex items-center flex-1">
+                                                                    <span className="text-2xl mr-3">{getFileIcon(fileExtension)}</span>
+                                                                    <div className="flex flex-col">
+                                                                        <span className="text-sm text-gray-900 font-medium">{fileName}</span>
+                                                                        <span className="text-xs text-gray-500 uppercase">{fileExtension} file</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex items-center space-x-2">
+                                                                    <a 
+                                                                        href={docUrl} 
+                                                                        target="_blank" 
+                                                                        rel="noopener noreferrer"
+                                                                        className="inline-flex items-center px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded transition-colors"
+                                                                        onClick={(e) => {
+                                                                            console.log('Opening document:', docUrl);
+                                                                        }}
+                                                                    >
+                                                                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                                        </svg>
+                                                                        View
+                                                                    </a>
+                                                                    <a 
+                                                                        href={docUrl} 
+                                                                        download={fileName}
+                                                                        className="inline-flex items-center px-3 py-1 bg-green-100 hover:bg-green-200 text-green-700 text-xs font-medium rounded transition-colors"
+                                                                        onClick={(e) => {
+                                                                            console.log('Downloading document:', docUrl);
+                                                                        }}
+                                                                    >
+                                                                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                        </svg>
+                                                                        Download
+                                                                    </a>
+                                                                </div>
                                                             </div>
-                                                            <a 
-                                                                href={`/storage/${docPath}`} 
-                                                                target="_blank" 
-                                                                rel="noopener noreferrer"
-                                                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                                                                onClick={(e) => {
-                                                                    console.log('Downloading document:', `/storage/${docPath}`);
-                                                                }}
-                                                            >
-                                                                Download
-                                                            </a>
-                                                        </div>
-                                                    ))}
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
                                         )}
