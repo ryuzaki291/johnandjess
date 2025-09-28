@@ -6,10 +6,13 @@
 /**
  * Get the base URL for the application
  * Uses Laravel's APP_URL from meta tag or falls back to current origin
+ * Enhanced for shared hosting environments like Hostinger
  */
 export const getBaseUrl = (): string => {
-    // Check if we're in local development first (localhost, 127.0.0.1, or local IP)
     const hostname = window.location.hostname;
+    const protocol = window.location.protocol;
+    
+    // Priority 1: Check if we're in local development
     const isLocalhost = hostname === 'localhost' || 
                        hostname === '127.0.0.1' || 
                        hostname.startsWith('192.168.') || 
@@ -21,30 +24,49 @@ export const getBaseUrl = (): string => {
         return window.location.origin;
     }
     
-    // For production, try to get the app URL from meta tag set by Laravel
-    const appUrlMeta = document.head.querySelector('meta[name="app-url"]') as HTMLMetaElement;
-    if (appUrlMeta && appUrlMeta.content) {
-        console.log('🌐 Using APP_URL from meta tag:', appUrlMeta.content);
-        return appUrlMeta.content.replace(/\/$/, ''); // Remove trailing slash
+    // Priority 2: Check for shared hosting patterns (Hostinger, cPanel, etc.)
+    const isSharedHosting = hostname.includes('.hostinger.') || 
+                           hostname.includes('.cpanel.') ||
+                           hostname.includes('.000webhost.') ||
+                           hostname.match(/^\d+\.\d+\.\d+\.\d+$/); // IP address
+    
+    if (isSharedHosting) {
+        console.log('🌐 Shared hosting detected, using current origin:', window.location.origin);
+        return window.location.origin;
     }
     
-    // Check if we're in production by looking at the current domain
-    if (hostname === 'admin.johnjess.com' || hostname === 'johnjess.com') {
-        console.log('🚀 Production domain detected:', 'https://admin.johnjess.com');
+    // Priority 3: Check for specific production domains
+    if (hostname === 'admin.johnjess.com') {
+        console.log('🚀 Production admin domain detected:', 'https://admin.johnjess.com');
         return 'https://admin.johnjess.com';
     }
     
-    // Fallback to current origin
-    console.log('🔄 Fallback to current origin:', window.location.origin);
-    return window.location.origin;
+    if (hostname === 'johnjess.com') {
+        console.log('🚀 Production main domain detected, using admin subdomain:', 'https://admin.johnjess.com');
+        return 'https://admin.johnjess.com';  // Redirect to admin subdomain for API calls
+    }
+    
+    // Priority 4: Try to get the app URL from meta tag set by Laravel (most reliable for production)
+    const appUrlMeta = document.head.querySelector('meta[name="app-url"]') as HTMLMetaElement;
+    if (appUrlMeta && appUrlMeta.content) {
+        const metaUrl = appUrlMeta.content.replace(/\/$/, ''); // Remove trailing slash
+        console.log('🌐 Using APP_URL from meta tag:', metaUrl);
+        return metaUrl;
+    }
+    
+    // Priority 5: Fallback to current origin with proper protocol
+    const fallbackUrl = `${protocol}//${hostname}${window.location.port ? ':' + window.location.port : ''}`;
+    console.log('🔄 Fallback to current origin:', fallbackUrl);
+    return fallbackUrl;
 };
 
 /**
  * Generate a proper storage URL for uploaded files
  * @param path - The storage path (e.g., 'incident_reports/images/filename.jpg')
+ * @param useAlternativeRoute - Whether to use the alternative Laravel route for file serving
  * @returns Full URL to the file
  */
-export const getStorageUrl = (path: string): string => {
+export const getStorageUrl = (path: string, useAlternativeRoute: boolean = false): string => {
     if (!path) {
         console.warn('⚠️ getStorageUrl: Empty path provided');
         return '';
@@ -54,6 +76,17 @@ export const getStorageUrl = (path: string): string => {
     // Remove leading slash if present to avoid double slashes
     const cleanPath = path.startsWith('/') ? path.substring(1) : path;
     
+    // Check if we should use alternative route (for shared hosting)
+    if (useAlternativeRoute) {
+        const alternativeUrl = `${baseUrl}/api/storage-direct/${cleanPath}`;
+        console.log('🔄 Using alternative direct storage route:', { 
+            path, 
+            cleanPath, 
+            alternativeUrl 
+        });
+        return alternativeUrl;
+    }
+    
     const fullUrl = `${baseUrl}/storage/${cleanPath}`;
     console.log('📁 Generated storage URL:', { 
         path, 
@@ -61,7 +94,8 @@ export const getStorageUrl = (path: string): string => {
         baseUrl, 
         fullUrl,
         hostname: window.location.hostname,
-        port: window.location.port 
+        port: window.location.port,
+        useAlternativeRoute
     });
     
     return fullUrl;
@@ -123,7 +157,11 @@ export const preloadImage = (url: string): Promise<HTMLImageElement> => {
  * @returns Object with url and a method to handle errors
  */
 export const getStorageUrlWithFallback = (path: string) => {
-    const url = getStorageUrl(path);
+    const hostname = window.location.hostname;
+    const isProduction = !hostname.includes('localhost') && !hostname.includes('127.0.0.1') && !hostname.includes('192.168.');
+    
+    // For production (shared hosting), use the working alternative route by default
+    const url = isProduction ? getStorageUrl(path, true) : getStorageUrl(path);
     const fallbackUrl = getFallbackImageUrl();
     
     return {
@@ -139,8 +177,27 @@ export const getStorageUrlWithFallback = (path: string) => {
                 error: e 
             });
             
-            // Only set fallback if not already set to avoid infinite loops
+            // If we're not already using the alternative route, try it
+            if (!e.currentTarget.src.includes('/api/storage-direct/')) {
+                const alternativeUrl = getStorageUrl(path, true);
+                console.log('🔄 Trying alternative serving route:', alternativeUrl);
+                e.currentTarget.src = alternativeUrl;
+                return;
+            }
+            
+            // If alternative route also failed, try the regular storage URL
+            if (!e.currentTarget.src.includes('/storage/') || e.currentTarget.src.includes('/api/storage-direct/')) {
+                const regularUrl = getStorageUrl(path, false);
+                if (e.currentTarget.src !== regularUrl) {
+                    console.log('🔄 Trying regular storage URL:', regularUrl);
+                    e.currentTarget.src = regularUrl;
+                    return;
+                }
+            }
+            
+            // If both methods failed, use fallback
             if (e.currentTarget.src !== fallbackUrl) {
+                console.log('❌ Using fallback image');
                 e.currentTarget.src = fallbackUrl;
             }
         }

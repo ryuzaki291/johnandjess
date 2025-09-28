@@ -2,6 +2,8 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehicleController;
@@ -20,6 +22,91 @@ Route::get('/test', function () {
         'database' => config('database.default')
     ]);
 });
+
+// Temporary debug endpoint for storage issues - REMOVE AFTER FIXING
+Route::get('/debug/storage', function () {
+    $storagePublicPath = storage_path('app/public');
+    $publicStoragePath = public_path('storage');
+    $incidentImagesPath = storage_path('app/public/incident_reports/images');
+    
+    return response()->json([
+        'environment' => config('app.env'),
+        'app_url' => config('app.url'),
+        'server_info' => [
+            'server_software' => $_SERVER['SERVER_SOFTWARE'] ?? 'Unknown',
+            'document_root' => $_SERVER['DOCUMENT_ROOT'] ?? 'Unknown',
+            'script_filename' => $_SERVER['SCRIPT_FILENAME'] ?? 'Unknown',
+        ],
+        'storage_paths' => [
+            'storage_public_path' => $storagePublicPath,
+            'public_storage_path' => $publicStoragePath,
+            'incident_images_path' => $incidentImagesPath,
+        ],
+        'path_checks' => [
+            'storage_public_exists' => file_exists($storagePublicPath),
+            'public_storage_exists' => file_exists($publicStoragePath),
+            'public_storage_is_link' => is_link($publicStoragePath),
+            'public_storage_is_dir' => is_dir($publicStoragePath),
+            'incident_images_exists' => file_exists($incidentImagesPath),
+        ],
+        'permissions' => [
+            'storage_readable' => is_readable($storagePublicPath),
+            'storage_writable' => is_writable($storagePublicPath),
+            'public_storage_readable' => is_readable($publicStoragePath),
+        ],
+        'symlink_info' => [
+            'target' => is_link($publicStoragePath) ? readlink($publicStoragePath) : null,
+            'real_path' => realpath($publicStoragePath),
+        ],
+        'sample_files' => [
+            'incident_images' => file_exists($incidentImagesPath) ? array_slice(glob($incidentImagesPath . '/*'), 0, 5) : [],
+        ],
+        'url_generation' => [
+            'storage_url_function' => Storage::url('incident_reports/images/test.png'),
+            'asset_url_function' => asset('storage/incident_reports/images/test.png'),
+        ]
+    ]);
+});
+
+// Simple direct storage serving route for shared hosting
+Route::get('/storage-direct/{path}', function ($path) {
+    // Clean and validate the path
+    $cleanPath = str_replace(['../', '..\\'], '', $path);
+    $fullPath = storage_path('app/public/' . $cleanPath);
+    
+    if (!file_exists($fullPath) || !is_file($fullPath)) {
+        abort(404, 'File not found');
+    }
+    
+    // Get file info
+    $extension = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
+    
+    // Set content type based on extension
+    $contentType = 'application/octet-stream';
+    switch ($extension) {
+        case 'jpg':
+        case 'jpeg':
+            $contentType = 'image/jpeg';
+            break;
+        case 'png':
+            $contentType = 'image/png';
+            break;
+        case 'gif':
+            $contentType = 'image/gif';
+            break;
+        case 'svg':
+            $contentType = 'image/svg+xml';
+            break;
+        case 'pdf':
+            $contentType = 'application/pdf';
+            break;
+    }
+    
+    return response()->file($fullPath, [
+        'Content-Type' => $contentType,
+        'Cache-Control' => 'public, max-age=86400',
+    ]);
+})->where('path', '.*');
 
 // Authentication routes
 Route::post('/auth/register', [AuthController::class, 'register']);
