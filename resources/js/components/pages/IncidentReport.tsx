@@ -1817,43 +1817,57 @@ const IncidentReportPage: React.FC = () => {
                                         {viewingIncident.incident_images && viewingIncident.incident_images.length > 0 && (
                                             <div className="mb-4">
                                                 <h5 className="text-sm font-medium text-gray-700 mb-2">Images ({viewingIncident.incident_images.length})</h5>
-                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                                <div className="space-y-2">
                                                     {viewingIncident.incident_images.map((imagePath, index) => {
                                                         const { url, fallbackUrl, onError } = getStorageUrlWithFallback(imagePath);
+                                                        const fileName = imagePath.split('/').pop() || 'Unknown image';
+                                                        
                                                         return (
-                                                            <div key={index} className="relative group">
-                                                                <img 
-                                                                    src={url} 
-                                                                    alt={`Incident image ${index + 1}`}
-                                                                    className="w-full h-24 object-cover rounded border transition-transform group-hover:scale-105"
-                                                                    onError={onError}
-                                                                    onLoad={() => {
-                                                                        console.log('Successfully loaded image:', url);
-                                                                    }}
-                                                                />
-                                                                <a 
-                                                                    href={url} 
-                                                                    target="_blank" 
-                                                                    rel="noopener noreferrer"
-                                                                    className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-30 flex items-center justify-center text-white opacity-0 hover:opacity-100 transition-all duration-200 rounded"
-                                                                    onClick={(e) => {
-                                                                        console.log('Opening image:', url);
-                                                                        // Check if image exists before opening
-                                                                        checkImageExists(url).then(exists => {
-                                                                            if (!exists) {
-                                                                                e.preventDefault();
-                                                                                alert('Image could not be loaded. Please check the server configuration.');
-                                                                            }
-                                                                        });
-                                                                    }}
-                                                                >
-                                                                    <div className="flex flex-col items-center">
-                                                                        <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                                                        </svg>
-                                                                        <span className="text-xs font-medium">View</span>
+                                                            <div key={index} className="flex items-center justify-between bg-white p-3 rounded border hover:border-blue-300 transition-colors">
+                                                                <div className="flex items-center flex-1">
+                                                                    <span className="text-2xl mr-3">🖼️</span>
+                                                                    <div className="flex flex-col">
+                                                                        <span className="text-sm text-gray-900 font-medium">{fileName}</span>
+                                                                        <span className="text-xs text-gray-500 uppercase">Image file</span>
                                                                     </div>
-                                                                </a>
+                                                                </div>
+                                                                <div className="flex items-center space-x-2">
+                                                                    <a 
+                                                                        href={url} 
+                                                                        target="_blank" 
+                                                                        rel="noopener noreferrer"
+                                                                        className="inline-flex items-center px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded transition-colors"
+                                                                        onClick={(e) => {
+                                                                            console.log('Opening image:', url);
+                                                                            // Check if image exists before opening
+                                                                            checkImageExists(url).then(exists => {
+                                                                                if (!exists) {
+                                                                                    e.preventDefault();
+                                                                                    alert('Image could not be loaded. Please check the server configuration.');
+                                                                                }
+                                                                            });
+                                                                        }}
+                                                                    >
+                                                                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                                        </svg>
+                                                                        View
+                                                                    </a>
+                                                                    <a 
+                                                                        href={url} 
+                                                                        download={fileName}
+                                                                        className="inline-flex items-center px-3 py-1 bg-green-100 hover:bg-green-200 text-green-700 text-xs font-medium rounded transition-colors"
+                                                                        onClick={(e) => {
+                                                                            console.log('Downloading image:', url);
+                                                                        }}
+                                                                    >
+                                                                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                        </svg>
+                                                                        Download
+                                                                    </a>
+                                                                </div>
                                                             </div>
                                                         );
                                                     })}

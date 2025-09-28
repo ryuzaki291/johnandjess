@@ -1451,6 +1451,85 @@ const MaintenanceNew: React.FC = () => {
                                     </div>
                                 </div>
 
+                                {/* Documents Section */}
+                                {viewRecord.documents && viewRecord.documents.length > 0 && (
+                                    <div className="bg-purple-50 p-4 rounded-lg">
+                                        <h4 className="text-lg font-semibold text-gray-900 mb-3">Documents</h4>
+                                        <div className="space-y-2">
+                                            {viewRecord.documents.map((document, index) => {
+                                                const fileName = document.original_name || 'Unknown file';
+                                                const fileExtension = fileName.split('.').pop()?.toLowerCase() || '';
+                                                
+                                                // Get appropriate icon based on file extension
+                                                const getFileIcon = (ext: string) => {
+                                                    switch (ext) {
+                                                        case 'pdf':
+                                                            return '📄';
+                                                        case 'doc':
+                                                        case 'docx':
+                                                            return '📝';
+                                                        case 'txt':
+                                                            return '📃';
+                                                        case 'jpg':
+                                                        case 'jpeg':
+                                                        case 'png':
+                                                        case 'gif':
+                                                            return '🖼️';
+                                                        default:
+                                                            return '📁';
+                                                    }
+                                                };
+                                                
+                                                return (
+                                                    <div key={index} className="flex items-center justify-between bg-white p-3 rounded border hover:border-blue-300 transition-colors">
+                                                        <div className="flex items-center flex-1">
+                                                            <span className="text-2xl mr-3">{getFileIcon(fileExtension)}</span>
+                                                            <div className="flex flex-col">
+                                                                <span className="text-sm text-gray-900 font-medium">{fileName}</span>
+                                                                <span className="text-xs text-gray-500 uppercase">{fileExtension} file</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center space-x-2">
+                                                            <button
+                                                                onClick={() => {
+                                                                    const fileUrl = `/storage/${document.path}`;
+                                                                    window.open(fileUrl, '_blank');
+                                                                }}
+                                                                className="inline-flex items-center px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded transition-colors"
+                                                                title="View Document"
+                                                            >
+                                                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                                </svg>
+                                                                View
+                                                            </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    const fileUrl = `/storage/${document.path}`;
+                                                                    const link = window.document.createElement('a');
+                                                                    link.href = fileUrl;
+                                                                    link.download = fileName;
+                                                                    window.document.body.appendChild(link);
+                                                                    link.click();
+                                                                    window.document.body.removeChild(link);
+                                                                }}
+                                                                className="inline-flex items-center px-3 py-1 bg-green-100 hover:bg-green-200 text-green-700 text-xs font-medium rounded transition-colors"
+                                                                title="Download Document"
+                                                            >
+                                                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                </svg>
+                                                                Download
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Action Buttons */}
                                 <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-slate-200">
                                     <button
