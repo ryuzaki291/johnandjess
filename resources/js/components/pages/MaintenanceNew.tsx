@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import MainMaintenanceTab from './MainMaintenanceTab';
 import Swal from 'sweetalert2';
+import { getStorageUrl, getFallbackImageUrl, getStorageUrlWithFallback, checkImageExists, getDownloadUrl } from '../../utils/assetHelper';
 
 interface Vehicle {
     plate_number: string;
@@ -1454,79 +1455,148 @@ const MaintenanceNew: React.FC = () => {
                                 {/* Documents Section */}
                                 {viewRecord.documents && viewRecord.documents.length > 0 && (
                                     <div className="bg-purple-50 p-4 rounded-lg">
-                                        <h4 className="text-lg font-semibold text-gray-900 mb-3">Documents</h4>
-                                        <div className="space-y-2">
-                                            {viewRecord.documents.map((document, index) => {
-                                                const fileName = document.original_name || 'Unknown file';
-                                                const fileExtension = fileName.split('.').pop()?.toLowerCase() || '';
-                                                
-                                                // Get appropriate icon based on file extension
-                                                const getFileIcon = (ext: string) => {
-                                                    switch (ext) {
-                                                        case 'pdf':
-                                                            return '📄';
-                                                        case 'doc':
-                                                        case 'docx':
-                                                            return '📝';
-                                                        case 'txt':
-                                                            return '📃';
-                                                        case 'jpg':
-                                                        case 'jpeg':
-                                                        case 'png':
-                                                        case 'gif':
-                                                            return '🖼️';
-                                                        default:
-                                                            return '📁';
-                                                    }
-                                                };
-                                                
-                                                return (
-                                                    <div key={index} className="flex items-center justify-between bg-white p-3 rounded border hover:border-blue-300 transition-colors">
-                                                        <div className="flex items-center flex-1">
-                                                            <span className="text-2xl mr-3">{getFileIcon(fileExtension)}</span>
-                                                            <div className="flex flex-col">
-                                                                <span className="text-sm text-gray-900 font-medium">{fileName}</span>
-                                                                <span className="text-xs text-gray-500 uppercase">{fileExtension} file</span>
+                                        <h4 className="text-lg font-semibold text-gray-900 mb-3">File Attachments</h4>
+                                        
+                                        {/* Separate images from documents */}
+                                        {(() => {
+                                            const images = viewRecord.documents.filter(doc => {
+                                                const ext = (doc.original_name || '').split('.').pop()?.toLowerCase() || '';
+                                                return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
+                                            });
+                                            const documents = viewRecord.documents.filter(doc => {
+                                                const ext = (doc.original_name || '').split('.').pop()?.toLowerCase() || '';
+                                                return !['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
+                                            });
+
+                                            return (
+                                                <>
+                                                    {images.length > 0 && (
+                                                        <div className="mb-4">
+                                                            <h5 className="text-sm font-medium text-gray-700 mb-3">Images ({images.length})</h5>
+                                                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                                                {images.map((document, index) => {
+                                                                    const fileName = document.original_name || 'Unknown image';
+                                                                    const { url, fallbackUrl, onError } = getStorageUrlWithFallback(document.path);
+                                                                    
+                                                                    return (
+                                                                        <div key={index} className="relative bg-white p-2 rounded-lg border hover:border-purple-300 transition-colors">
+                                                                            <div className="aspect-square bg-gray-100 rounded overflow-hidden relative">
+                                                                                <img 
+                                                                                    src={url} 
+                                                                                    alt={fileName}
+                                                                                    className="w-full h-full object-cover"
+                                                                                    onError={onError}
+                                                                                    loading="lazy"
+                                                                                />
+                                                                            </div>
+                                                                            <div className="mt-2 text-center">
+                                                                                <p className="text-xs text-gray-600 truncate" title={fileName}>{fileName}</p>
+                                                                                <div className="flex justify-center gap-2 mt-2">
+                                                                                    <button
+                                                                                        onClick={() => {
+                                                                                            window.open(url, '_blank');
+                                                                                        }}
+                                                                                        className="inline-flex items-center px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded transition-colors"
+                                                                                        title="View Image"
+                                                                                    >
+                                                                                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                                                        </svg>
+                                                                                        View
+                                                                                    </button>
+                                                                                    <a
+                                                                                        href={getDownloadUrl(document.path)}
+                                                                                        className="inline-flex items-center px-2 py-1 bg-green-100 hover:bg-green-200 text-green-700 text-xs font-medium rounded transition-colors"
+                                                                                        title="Download Image"
+                                                                                    >
+                                                                                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                                        </svg>
+                                                                                        Download
+                                                                                    </a>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    );
+                                                                })}
                                                             </div>
                                                         </div>
-                                                        <div className="flex items-center space-x-2">
-                                                            <button
-                                                                onClick={() => {
-                                                                    const fileUrl = `/storage/${document.path}`;
-                                                                    window.open(fileUrl, '_blank');
-                                                                }}
-                                                                className="inline-flex items-center px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded transition-colors"
-                                                                title="View Document"
-                                                            >
-                                                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                                </svg>
-                                                                View
-                                                            </button>
-                                                            <button
-                                                                onClick={() => {
-                                                                    const fileUrl = `/storage/${document.path}`;
-                                                                    const link = window.document.createElement('a');
-                                                                    link.href = fileUrl;
-                                                                    link.download = fileName;
-                                                                    window.document.body.appendChild(link);
-                                                                    link.click();
-                                                                    window.document.body.removeChild(link);
-                                                                }}
-                                                                className="inline-flex items-center px-3 py-1 bg-green-100 hover:bg-green-200 text-green-700 text-xs font-medium rounded transition-colors"
-                                                                title="Download Document"
-                                                            >
-                                                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                                </svg>
-                                                                Download
-                                                            </button>
+                                                    )}
+
+                                                    {documents.length > 0 && (
+                                                        <div>
+                                                            <h5 className="text-sm font-medium text-gray-700 mb-3">Documents ({documents.length})</h5>
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                                {documents.map((document, index) => {
+                                                                    const fileName = document.original_name || 'Unknown file';
+                                                                    const fileExtension = fileName.split('.').pop()?.toLowerCase() || '';
+                                                                    
+                                                                    // Get appropriate icon and color based on file extension
+                                                                    const getFileDetails = (ext: string) => {
+                                                                        switch (ext) {
+                                                                            case 'pdf':
+                                                                                return { icon: '📄', bgColor: 'bg-red-50', textColor: 'text-red-700', borderColor: 'border-red-200' };
+                                                                            case 'doc':
+                                                                            case 'docx':
+                                                                                return { icon: '📝', bgColor: 'bg-blue-50', textColor: 'text-blue-700', borderColor: 'border-blue-200' };
+                                                                            case 'txt':
+                                                                                return { icon: '📃', bgColor: 'bg-gray-50', textColor: 'text-gray-700', borderColor: 'border-gray-200' };
+                                                                            default:
+                                                                                return { icon: '📁', bgColor: 'bg-purple-50', textColor: 'text-purple-700', borderColor: 'border-purple-200' };
+                                                                        }
+                                                                    };
+                                                                    
+                                                                    const fileDetails = getFileDetails(fileExtension);
+                                                                    
+                                                                    return (
+                                                                        <div key={index} className={`${fileDetails.bgColor} ${fileDetails.borderColor} border-2 rounded-lg p-4 hover:shadow-md transition-shadow`}>
+                                                                            <div className="flex items-center justify-between mb-3">
+                                                                                <div className="flex items-center">
+                                                                                    <span className="text-3xl mr-3">{fileDetails.icon}</span>
+                                                                                    <div>
+                                                                                        <p className={`${fileDetails.textColor} font-medium text-sm truncate`} title={fileName}>
+                                                                                            {fileName}
+                                                                                        </p>
+                                                                                        <p className="text-xs text-gray-500 uppercase font-semibold">
+                                                                                            {fileExtension} FILE
+                                                                                        </p>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="flex justify-center gap-2">
+                                                                                <button
+                                                                                    onClick={() => {
+                                                                                        const fileUrl = getStorageUrl(document.path);
+                                                                                        window.open(fileUrl, '_blank');
+                                                                                    }}
+                                                                                    className="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+                                                                                >
+                                                                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                                                    </svg>
+                                                                                    View
+                                                                                </button>
+                                                                                <a
+                                                                                    href={getDownloadUrl(document.path)}
+                                                                                    className="inline-flex items-center px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors"
+                                                                                >
+                                                                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                                    </svg>
+                                                                                    Download
+                                                                                </a>
+                                                                            </div>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
+                                                    )}
+                                                </>
+                                            );
+                                        })()}
                                     </div>
                                 )}
 

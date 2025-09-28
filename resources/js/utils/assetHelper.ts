@@ -61,6 +61,31 @@ export const getBaseUrl = (): string => {
 };
 
 /**
+ * Generate a download URL that forces file download instead of display
+ * @param path - The storage path (e.g., 'incident_reports/images/filename.jpg')
+ * @returns Full URL to download the file
+ */
+export const getDownloadUrl = (path: string): string => {
+    if (!path) {
+        console.warn('⚠️ getDownloadUrl: Empty path provided');
+        return '';
+    }
+    
+    const baseUrl = getBaseUrl();
+    // Remove leading slash if present to avoid double slashes
+    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    
+    const downloadUrl = `${baseUrl}/api/download/${cleanPath}`;
+    console.log('⬇️ Generated download URL:', { 
+        path, 
+        cleanPath, 
+        downloadUrl 
+    });
+    
+    return downloadUrl;
+};
+
+/**
  * Generate a proper storage URL for uploaded files
  * @param path - The storage path (e.g., 'incident_reports/images/filename.jpg')
  * @param useAlternativeRoute - Whether to use the alternative Laravel route for file serving

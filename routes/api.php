@@ -108,6 +108,24 @@ Route::get('/storage-direct/{path}', function ($path) {
     ]);
 })->where('path', '.*');
 
+// Download endpoint for files - forces download instead of display
+Route::get('/download/{path}', function ($path) {
+    // Clean and validate the path
+    $cleanPath = str_replace(['../', '..\\'], '', $path);
+    $fullPath = storage_path('app/public/' . $cleanPath);
+    
+    if (!file_exists($fullPath) || !is_file($fullPath)) {
+        abort(404, 'File not found');
+    }
+    
+    // Get original filename from path
+    $fileName = basename($cleanPath);
+    
+    return response()->download($fullPath, $fileName, [
+        'Cache-Control' => 'no-cache, must-revalidate',
+    ]);
+})->where('path', '.*');
+
 // Authentication routes
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);

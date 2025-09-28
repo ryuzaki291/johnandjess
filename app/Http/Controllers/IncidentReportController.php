@@ -193,7 +193,9 @@ class IncidentReportController extends Controller
                 'incident_report_id' => $id,
                 'data' => $request->all(),
                 'method' => $request->method(),
-                'has_files' => $request->hasFile('incident_images') || $request->hasFile('incident_documents')
+                'has_files' => $request->hasFile('incident_images') || $request->hasFile('incident_documents'),
+                'remove_images' => $request->input('remove_images', []),
+                'remove_documents' => $request->input('remove_documents', [])
             ]);
 
             $incidentReport = IncidentReport::findOrFail($id);
@@ -216,6 +218,10 @@ class IncidentReportController extends Controller
                 'notes' => 'nullable|string',
                 'incident_images.*' => 'nullable|file|mimes:jpeg,jpg,png,gif|max:5120',
                 'incident_documents.*' => 'nullable|file|mimes:pdf,doc,docx,txt|max:10240',
+                'remove_images' => 'nullable|array',
+                'remove_images.*' => 'nullable|string',
+                'remove_documents' => 'nullable|array',
+                'remove_documents.*' => 'nullable|string',
             ]);
 
             if ($validator->fails()) {
@@ -233,6 +239,34 @@ class IncidentReportController extends Controller
             // Get vehicle information
             $vehicle = Vehicle::where('plate_number', $request->plate_number)->first();
 
+            // Handle file removals first
+            if ($request->has('remove_images')) {
+                $imagesToRemove = $request->input('remove_images', []);
+                Log::info('Processing image removals', ['images' => $imagesToRemove]);
+                foreach ($imagesToRemove as $imagePath) {
+                    Log::info('Removing image', ['path' => $imagePath]);
+                    // Remove from storage
+                    Storage::disk('public')->delete($imagePath);
+                    // Remove from database
+                    $incidentReport->removeImage($imagePath);
+                }
+            }
+
+            if ($request->has('remove_documents')) {
+                $documentsToRemove = $request->input('remove_documents', []);
+                Log::info('Processing document removals', ['documents' => $documentsToRemove]);
+                foreach ($documentsToRemove as $documentPath) {
+                    Log::info('Removing document', ['path' => $documentPath]);
+                    // Remove from storage
+                    Storage::disk('public')->delete($documentPath);
+                    // Remove from database
+                    $incidentReport->removeDocument($documentPath);
+                }
+            }
+
+            // Refresh the model to get updated file arrays
+            $incidentReport->refresh();
+
             // Handle new file uploads
             $existingImages = $incidentReport->incident_images ?? [];
             $existingDocuments = $incidentReport->incident_documents ?? [];
@@ -240,16 +274,19 @@ class IncidentReportController extends Controller
             if ($request->hasFile('incident_images')) {
                 foreach ($request->file('incident_images') as $image) {
                     $path = $image->store('incident_reports/images', 'public');
-                    $existingImages[] = $path;
+                    $incidentReport->addImage($path);
                 }
             }
 
             if ($request->hasFile('incident_documents')) {
                 foreach ($request->file('incident_documents') as $document) {
                     $path = $document->store('incident_reports/documents', 'public');
-                    $existingDocuments[] = $path;
+                    $incidentReport->addDocument($path);
                 }
             }
+
+            // Get the latest file arrays after all operations
+            $incidentReport->refresh();
 
             $incidentReport->update([
                 'plate_number' => $request->plate_number,
@@ -266,8 +303,6 @@ class IncidentReportController extends Controller
                 'damage_description' => $request->damage_description,
                 'estimated_cost' => $request->estimated_cost,
                 'severity_level' => $request->severity_level,
-                'incident_images' => $existingImages,
-                'incident_documents' => $existingDocuments,
                 'status' => $request->status,
                 'action_taken' => $request->action_taken,
                 'notes' => $request->notes,
@@ -277,7 +312,9 @@ class IncidentReportController extends Controller
 
             Log::info('Incident report updated successfully', [
                 'incident_report_id' => $id,
-                'plate_number' => $incidentReport->plate_number
+                'plate_number' => $incidentReport->plate_number,
+                'final_images' => $incidentReport->incident_images,
+                'final_documents' => $incidentReport->incident_documents
             ]);
 
             return response()->json([
