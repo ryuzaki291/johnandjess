@@ -1880,7 +1880,6 @@ const IncidentReportPage: React.FC = () => {
                                                 <h5 className="text-sm font-medium text-gray-700 mb-2">Documents ({viewingIncident.incident_documents.length})</h5>
                                                 <div className="space-y-2">
                                                     {viewingIncident.incident_documents.map((docPath, index) => {
-                                                        const docUrl = getStorageUrl(docPath);
                                                         const fileName = docPath.split('/').pop() || 'Unknown file';
                                                         const fileExtension = fileName.split('.').pop()?.toLowerCase() || '';
                                                         
@@ -1910,13 +1909,10 @@ const IncidentReportPage: React.FC = () => {
                                                                 </div>
                                                                 <div className="flex items-center space-x-2">
                                                                     <a 
-                                                                        href={docUrl} 
+                                                                        href={`/storage/${docPath}`} 
                                                                         target="_blank" 
                                                                         rel="noopener noreferrer"
                                                                         className="inline-flex items-center px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded transition-colors"
-                                                                        onClick={(e) => {
-                                                                            console.log('Opening document:', docUrl);
-                                                                        }}
                                                                     >
                                                                         <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -1925,12 +1921,9 @@ const IncidentReportPage: React.FC = () => {
                                                                         View
                                                                     </a>
                                                                     <a 
-                                                                        href={docUrl} 
+                                                                        href={`/storage/${docPath}`} 
                                                                         download={fileName}
                                                                         className="inline-flex items-center px-3 py-1 bg-green-100 hover:bg-green-200 text-green-700 text-xs font-medium rounded transition-colors"
-                                                                        onClick={(e) => {
-                                                                            console.log('Downloading document:', docUrl);
-                                                                        }}
                                                                     >
                                                                         <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
