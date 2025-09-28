@@ -300,7 +300,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                 <div className="mb-6 flex justify-between items-center">
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900">
-                            Hello back, {user.name}!
+                            Hello Welcome back, {user.name}!
                         </h1>
                         <p className="text-gray-600">John & Jess Car Rental Service Corp.</p>
                     </div>
