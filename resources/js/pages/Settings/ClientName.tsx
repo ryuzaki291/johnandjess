@@ -95,16 +95,32 @@ const ClientNameSettings: React.FC<Props> = ({ clientNames: initialData }) => {
             
             const method = editingClient ? 'PUT' : 'POST';
             
+            console.log(`${method} request to:`, url);
+            console.log('Form data:', formData);
+            
+            const csrfToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content;
+            console.log('CSRF Token available:', !!csrfToken);
+            
             const response = await fetch(url, {
                 method,
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content || '',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken || '',
                 },
                 body: JSON.stringify(formData),
             });
 
+            console.log('Response status:', response.status);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Response error:', errorText);
+                throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+            }
+
             const data = await response.json();
+            console.log('Response data:', data);
 
             if (data.success) {
                 Swal.fire('Success', data.message, 'success');

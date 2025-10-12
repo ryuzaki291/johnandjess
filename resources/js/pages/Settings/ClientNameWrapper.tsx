@@ -37,16 +37,30 @@ const ClientNameWrapper: React.FC = () => {
     const fetchClientNames = async () => {
         try {
             setLoading(true);
-            const response = await fetch('/api/client-names');
+            setError(null); // Clear any previous errors
+            
+            console.log('Fetching client names from: /api/client-names');
+            const response = await fetch('/api/client-names', {
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            console.log('Response status:', response.status);
             
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorText = await response.text();
+                console.error('Response error:', errorText);
+                throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
             }
             
             const result = await response.json();
+            console.log('API Response:', result);
             
             if (result.success) {
                 setClientNames(result.data);
+                console.log('Client names loaded successfully:', result.data.data?.length || 0, 'items');
             } else {
                 throw new Error(result.message || 'Failed to fetch client names');
             }
