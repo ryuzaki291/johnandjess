@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Contract;
 use App\Models\Vehicle;
+use App\Models\ClientName;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -46,12 +47,16 @@ class ContractController extends Controller
             Log::info('Contract store request started');
             Log::info('Request data: ' . json_encode($request->all()));
             
+            // Get active client names for validation
+            $activeClientNames = ClientName::active()->pluck('name')->toArray();
+            $clientNameRule = empty($activeClientNames) ? 'required|string' : 'required|string|in:' . implode(',', $activeClientNames);
+            
             $validator = Validator::make($request->all(), [
                 'particular' => 'required|string|max:255',
                 'vehicle_type' => 'required|string|max:255',
                 'plate_number' => 'required|string|exists:vehicles,plate_number',
                 'owners_name' => 'required|string|max:255',
-                'company_assigned' => 'required|string|in:DITO TELECOMMUNITY CORPORATION,CHINA COMMUNICATION SERVICES PHILIPPINES CORPORATION,FUTURENET AND TECHNOLOGY CORPORATION,BESTWORLD ENGINEERING SDN BHD',
+                'company_assigned' => $clientNameRule,
                 'location_area' => 'required|string|max:255',
                 'drivers_name' => 'required|string|max:255',
                 'amount_range' => 'nullable|string|max:255',
@@ -162,12 +167,16 @@ class ContractController extends Controller
             
             $contract = Contract::findOrFail($id);
             
+            // Get active client names for validation 
+            $activeClientNames = ClientName::active()->pluck('name')->toArray();
+            $clientNameRule = empty($activeClientNames) ? 'required|string' : 'required|string|in:' . implode(',', $activeClientNames);
+            
             $validator = Validator::make($request->all(), [
                 'particular' => 'required|string|max:255',
                 'vehicle_type' => 'required|string|max:255',
                 'plate_number' => 'required|string|exists:vehicles,plate_number',
                 'owners_name' => 'required|string|max:255',
-                'company_assigned' => 'required|string|in:DITO TELECOMMUNITY CORPORATION,CHINA COMMUNICATION SERVICES PHILIPPINES CORPORATION,FUTURENET AND TECHNOLOGY CORPORATION,BESTWORLD ENGINEERING SDN BHD',
+                'company_assigned' => $clientNameRule,
                 'location_area' => 'required|string|max:255',
                 'drivers_name' => 'required|string|max:255',
                 'amount_range' => 'nullable|string|max:255',

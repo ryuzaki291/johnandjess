@@ -9,6 +9,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     const navigate = useNavigate();
     const location = useLocation();
+    const [settingsOpen, setSettingsOpen] = useState(false);
     
     const menuItems = [
         { id: 'dashboard', label: 'Dashboard', icon: '🏠', path: '/dashboard' },
@@ -19,6 +20,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         { id: 'incident-report', label: 'Incident Report', icon: '⚠️', path: '/incident-report' },
         { id: 'user-management', label: 'User Management', icon: '👥', path: '/user-management' },
     ];
+
+    const settingsItems = [
+        { id: 'client-name', label: 'Client Name', icon: '👤', path: '/settings/client-name' },
+    ];
+
+    const handleSettingsToggle = () => {
+        setSettingsOpen(!settingsOpen);
+    };
+
+    const handleMenuClick = (path: string) => {
+        navigate(path);
+        onToggle(); // Close sidebar after selection
+    };
 
     return (
         <>
@@ -71,11 +85,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                         {menuItems.map((item) => (
                             <li key={item.id}>
                                 <button
-                                    onClick={() => {
-                                        navigate(item.path);
-                                        // Close sidebar after selection
-                                        onToggle();
-                                    }}
+                                    onClick={() => handleMenuClick(item.path)}
                                     className={`
                                         w-full flex items-center px-3 py-3 text-left rounded-lg transition-colors duration-200
                                         ${location.pathname === item.path 
@@ -89,6 +99,56 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                                 </button>
                             </li>
                         ))}
+
+                        {/* Settings Menu with Dropdown */}
+                        <li>
+                            <button
+                                onClick={handleSettingsToggle}
+                                className={`
+                                    w-full flex items-center px-3 py-3 text-left rounded-lg transition-colors duration-200
+                                    ${location.pathname.startsWith('/settings') 
+                                        ? 'bg-indigo-100 text-indigo-700 border-r-4 border-indigo-700' 
+                                        : 'text-gray-700 hover:bg-gray-100'
+                                    }
+                                `}
+                            >
+                                <span className="text-xl mr-3">⚙️</span>
+                                <span className="font-medium flex-1">SETTING</span>
+                                <svg
+                                    className={`w-4 h-4 transition-transform duration-200 ${
+                                        settingsOpen ? 'rotate-180' : ''
+                                    }`}
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+
+                            {/* Settings Dropdown */}
+                            {settingsOpen && (
+                                <ul className="mt-1 ml-6 space-y-1">
+                                    {settingsItems.map((item) => (
+                                        <li key={item.id}>
+                                            <button
+                                                onClick={() => handleMenuClick(item.path)}
+                                                className={`
+                                                    w-full flex items-center px-3 py-2 text-left rounded-lg transition-colors duration-200
+                                                    ${location.pathname === item.path 
+                                                        ? 'bg-indigo-50 text-indigo-600 border-l-2 border-indigo-600' 
+                                                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
+                                                    }
+                                                `}
+                                            >
+                                                <span className="text-sm mr-2">{item.icon}</span>
+                                                <span className="font-medium text-sm">{item.label}</span>
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </li>
                     </ul>
                 </nav>
 

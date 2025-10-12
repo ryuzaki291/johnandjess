@@ -28,6 +28,7 @@ class DailyTrip extends Model
         'e_bill_no',
         'service_invoice_no',
         'company_assigned',
+        'client_name_id',
         'amount_net_of_vat',
         'add_vat_12_percent',
         'total_sales_vat_inclusive',
@@ -81,5 +82,13 @@ class DailyTrip extends Model
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class, 'plate_number', 'plate_number');
+    }
+
+    /**
+     * Get the client name associated with this daily trip.
+     */
+    public function clientName(): BelongsTo
+    {
+        return $this->belongsTo(ClientName::class, 'client_name_id');
     }
 }

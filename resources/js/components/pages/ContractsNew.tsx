@@ -2,6 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import Swal from 'sweetalert2';
 import { formatPesoInput, parsePesoInput, handlePesoInput } from '../../utils/pesoFormatter';
 
+// Helper function to check if client name is FUTURENET (2% EWT) or others (5% EWT)
+const isFuturenetClient = (clientName: string): boolean => {
+    return clientName?.toUpperCase().includes('FUTURENET') || false;
+};
+
 interface Vehicle {
     plate_number: string;
     vehicle_type: string;
@@ -18,6 +23,16 @@ interface DocumentFile {
     type?: string; // MIME type from backend
     mime_type?: string; // For compatibility with frontend expectations  
     uploaded_at?: string;
+}
+
+interface ClientName {
+    id: number;
+    name: string;
+    description: string | null;
+    is_active: boolean;
+    is_default: boolean;
+    created_at: string;
+    updated_at: string;
 }
 
 interface ContractRecord {
@@ -202,6 +217,8 @@ const ContractsNew: React.FC = () => {
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [isDragging, setIsDragging] = useState(false);
     const [documentsToDelete, setDocumentsToDelete] = useState<number[]>([]);
+    const [clientNames, setClientNames] = useState<ClientName[]>([]);
+    const [loadingClientNames, setLoadingClientNames] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Helper functions
@@ -262,7 +279,7 @@ const ContractsNew: React.FC = () => {
             const contractAmount = netTotalAmount + vatAmount;
             
             // Conditional EWT based on company assigned
-            const ewtRate = updatedFormData.companyAssigned === 'FUTURENET AND TECHNOLOGY CORPORATION' ? 0.02 : 0.05;
+            const ewtRate = isFuturenetClient(updatedFormData.companyAssigned) ? 0.02 : 0.05;
             const ewtAmount = netTotalAmount * ewtRate;
             
             // Final Amount = Contract Amount - EWT
@@ -545,6 +562,7 @@ const ContractsNew: React.FC = () => {
     useEffect(() => {
         fetchVehicles();
         fetchContractRecords();
+        fetchClientNames();
     }, []);
 
     // Function to get CSRF token
@@ -623,6 +641,28 @@ const ContractsNew: React.FC = () => {
         }
     };
 
+    // Fetch client names from API
+    const fetchClientNames = async () => {
+        setLoadingClientNames(true);
+        try {
+            const response = await fetch('/api/client-names/active');
+            if (response.ok) {
+                const result = await response.json();
+                // Ensure we always have an array
+                const data = result.data || result;
+                setClientNames(Array.isArray(data) ? data : []);
+            } else {
+                console.error('Failed to fetch client names');
+                setClientNames([]);
+            }
+        } catch (error) {
+            console.error('Error fetching client names:', error);
+            setClientNames([]);
+        } finally {
+            setLoadingClientNames(false);
+        }
+    };
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         
@@ -665,7 +705,7 @@ const ContractsNew: React.FC = () => {
             
             // Conditional EWT based on company assigned
             // FUTURENET AND TECHNOLOGY CORPORATION uses 2% EWT, others use 5%
-            const ewtRate = updatedFormData.companyAssigned === 'FUTURENET AND TECHNOLOGY CORPORATION' ? 0.02 : 0.05;
+            const ewtRate = isFuturenetClient(updatedFormData.companyAssigned) ? 0.02 : 0.05;
             const ewtAmount = netTotalAmount * ewtRate;
             
             // Final Amount = Contract Amount - EWT
@@ -693,7 +733,7 @@ const ContractsNew: React.FC = () => {
                 
                 // Conditional EWT based on company assigned
                 // FUTURENET AND TECHNOLOGY CORPORATION uses 2% EWT, others use 5%
-                const ewtRate = value === 'FUTURENET AND TECHNOLOGY CORPORATION' ? 0.02 : 0.05;
+                const ewtRate = isFuturenetClient(value) ? 0.02 : 0.05;
                 const ewtAmount = netTotalAmount * ewtRate;
                 
                 // Final Amount = Contract Amount - EWT
@@ -954,8 +994,8 @@ const ContractsNew: React.FC = () => {
                 const contractAmount = netTotalAmount + vatAmount;
                 
                 // Conditional EWT based on company assigned
-                // FUTURENET AND TECHNOLOGY CORPORATION uses 2% EWT, others use 5%
-                const ewtRate = record.companyAssigned === 'FUTURENET AND TECHNOLOGY CORPORATION' ? 0.02 : 0.05;
+                // FUTURENET uses 2% EWT, others use 5%
+                const ewtRate = isFuturenetClient(record.companyAssigned) ? 0.02 : 0.05;
                 const ewtAmount = netTotalAmount * ewtRate;
                 
                 // Final Amount = Contract Amount - EWT
@@ -1417,7 +1457,7 @@ const ContractsNew: React.FC = () => {
 
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Company Assigned *
+                                                Client Name *
                                             </label>
                                             <select
                                                 name="companyAssigned"
@@ -1427,10 +1467,15 @@ const ContractsNew: React.FC = () => {
                                                 required
                                             >
                                                 <option value="">Select Company</option>
-                                                <option value="DITO TELECOMMUNITY CORPORATION">DITO TELECOMMUNITY CORPORATION</option>
-                                                <option value="CHINA COMMUNICATION SERVICES PHILIPPINES CORPORATION">CHINA COMMUNICATION SERVICES PHILIPPINES CORPORATION</option>
-                                                <option value="FUTURENET AND TECHNOLOGY CORPORATION">FUTURENET AND TECHNOLOGY CORPORATION</option>
-                                                <option value="BESTWORLD ENGINEERING SDN BHD">BESTWORLD ENGINEERING SDN BHD</option>
+                                                {loadingClientNames ? (
+                                                    <option disabled>Loading companies...</option>
+                                                ) : (
+                                                    Array.isArray(clientNames) ? clientNames.map((client) => (
+                                                        <option key={client.id} value={client.name}>
+                                                            {client.name}
+                                                        </option>
+                                                    )) : null
+                                                )}
                                             </select>
                                         </div>
 
@@ -1525,7 +1570,7 @@ const ContractsNew: React.FC = () => {
 
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Less {formData.companyAssigned === 'FUTURENET AND TECHNOLOGY CORPORATION' ? '2%' : '5%'} EWT (Auto-calculated)
+                                                Less {isFuturenetClient(formData.companyAssigned) ? '2%' : '5%'} EWT (Auto-calculated)
                                                 <span className="text-blue-600 text-xs ml-1">📊</span>
                                             </label>
                                             <div className="relative">

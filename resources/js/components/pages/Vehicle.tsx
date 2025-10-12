@@ -130,6 +130,16 @@ interface VehicleProps {
     token: string;
 }
 
+interface ClientName {
+    id: number;
+    name: string;
+    description: string | null;
+    is_active: boolean;
+    is_default: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
 const Vehicle: React.FC<VehicleProps> = ({ token }) => {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [loading, setLoading] = useState(true);
@@ -155,11 +165,14 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [sortBy, setSortBy] = useState<'created_at' | 'updated_at'>('created_at');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+    const [clientNames, setClientNames] = useState<ClientName[]>([]);
+    const [loadingClientNames, setLoadingClientNames] = useState(false);
     const itemsPerPage = 10;
 
     useEffect(() => {
         console.log('Vehicle component mounted with token:', token);
         fetchVehicles();
+        fetchClientNames();
     }, []);
 
     const fetchVehicles = async () => {
@@ -220,6 +233,34 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
             setLoading(false);
         }
     };
+
+    // Fetch client names from API
+    const fetchClientNames = async () => {
+        setLoadingClientNames(true);
+        try {
+            const response = await fetch('/api/client-names/active');
+            if (response.ok) {
+                const result = await response.json();
+                // Ensure we always have an array
+                const data = result.data || result;
+                setClientNames(Array.isArray(data) ? data : []);
+            } else {
+                console.error('Failed to fetch client names');
+                setClientNames([]);
+            }
+        } catch (error) {
+            console.error('Error fetching client names:', error);
+            setClientNames([]);
+        } finally {
+            setLoadingClientNames(false);
+        }
+    };
+
+    useEffect(() => {
+        console.log('Vehicle component mounted with token:', token);
+        fetchVehicles();
+        fetchClientNames();
+    }, []);
 
     const handleView = (vehicle: Vehicle) => {
         setViewVehicle(vehicle);
@@ -1316,10 +1357,15 @@ const Vehicle: React.FC<VehicleProps> = ({ token }) => {
                                                     className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                                                 >
                                                     <option value="">Select Client</option>
-                                                    <option value="DITO TELECOMMUNITY CORPORATION">DITO TELECOMMUNITY CORPORATION</option>
-                                                    <option value="CHINA COMMUNICATION SERVICES PHILIPPINES CORPORATION">CHINA COMMUNICATION SERVICES PHILIPPINES CORPORATION</option>
-                                                    <option value="FUTURENET AND TECHNOLOGY CORPORATION">FUTURENET AND TECHNOLOGY CORPORATION</option>
-                                                    <option value="BESTWORLD ENGINEERING SDN BHD">BESTWORLD ENGINEERING SDN BHD</option>
+                                                    {loadingClientNames ? (
+                                                        <option disabled>Loading companies...</option>
+                                                    ) : (
+                                                        Array.isArray(clientNames) ? clientNames.map((client) => (
+                                                            <option key={client.id} value={client.name}>
+                                                                {client.name}
+                                                            </option>
+                                                        )) : null
+                                                    )}
                                                 </select>
                                                 {formErrors.company_name && (
                                                     <p className="mt-2 text-sm text-red-600">{formErrors.company_name[0]}</p>

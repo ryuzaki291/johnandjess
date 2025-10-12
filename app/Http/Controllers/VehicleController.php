@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Vehicle;
+use App\Models\ClientName;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -36,13 +37,17 @@ class VehicleController extends Controller
     {
         \Log::info('Creating vehicle with data:', $request->all());
 
+        // Get active client names for validation
+        $activeClientNames = ClientName::active()->pluck('name')->toArray();
+        $clientNameRule = empty($activeClientNames) ? 'nullable|string' : 'nullable|string|in:' . implode(',', $activeClientNames);
+
         $validator = Validator::make($request->all(), [
             'plate_number' => 'required|string|max:20|unique:vehicles,plate_number',
             'vehicle_type' => 'nullable|string|max:100',
             'vehicle_owner' => 'nullable|string|max:255',
             'vehicle_owner_address' => 'nullable|string',
             'vehicle_brand' => 'nullable|string|max:100',
-            'company_name' => 'nullable|string|in:DITO TELECOMMUNITY CORPORATION,CHINA COMMUNICATION SERVICES PHILIPPINES CORPORATION,FUTURENET AND TECHNOLOGY CORPORATION,BESTWORLD ENGINEERING SDN BHD',
+            'company_name' => $clientNameRule,
             'vehicle_status' => 'nullable|string|max:50',
             'add_date_in_company' => 'nullable|date',
             'creation_date' => 'nullable|date',
@@ -118,6 +123,10 @@ class VehicleController extends Controller
         try {
             $vehicle = Vehicle::findOrFail($plate_number);
 
+            // Get active client names for validation
+            $activeClientNames = ClientName::active()->pluck('name')->toArray();
+            $clientNameRule = empty($activeClientNames) ? 'nullable|string' : 'nullable|string|in:' . implode(',', $activeClientNames);
+
             $validator = Validator::make($request->all(), [
                 'plate_number' => [
                     'required',
@@ -129,7 +138,7 @@ class VehicleController extends Controller
                 'vehicle_owner' => 'nullable|string|max:255',
                 'vehicle_owner_address' => 'nullable|string',
                 'vehicle_brand' => 'nullable|string|max:100',
-                'company_name' => 'nullable|string|in:DITO TELECOMMUNITY CORPORATION,CHINA COMMUNICATION SERVICES PHILIPPINES CORPORATION,FUTURENET AND TECHNOLOGY CORPORATION,BESTWORLD ENGINEERING SDN BHD',
+                'company_name' => $clientNameRule,
                 'vehicle_status' => 'nullable|string|max:50',
                 'add_date_in_company' => 'nullable|date',
                 'creation_date' => 'nullable|date',

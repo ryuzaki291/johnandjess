@@ -14,6 +14,7 @@ use App\Http\Controllers\ContractController;
 use App\Http\Controllers\IncidentReportController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ClientNameController;
 
 Route::get('/test', function () {
     return response()->json([
@@ -176,6 +177,16 @@ Route::post('/search/plate-number', [SearchController::class, 'searchByPlateNumb
 // Dashboard routes
 Route::get('/dashboard/statistics', [DashboardController::class, 'statistics']);
 Route::get('/dashboard/vehicle-overview', [DashboardController::class, 'vehicleOverview']);
+
+// Client Name routes
+Route::get('/client-names', [ClientNameController::class, 'index']);
+Route::post('/client-names', [ClientNameController::class, 'store']);
+Route::get('/client-names/active', [ClientNameController::class, 'getActive']);
+Route::get('/client-names/{clientName}', [ClientNameController::class, 'show']);
+Route::put('/client-names/{clientName}', [ClientNameController::class, 'update']);
+Route::delete('/client-names/{clientName}', [ClientNameController::class, 'destroy']);
+Route::patch('/client-names/{clientName}/set-default', [ClientNameController::class, 'setDefault']);
+Route::patch('/client-names/{clientName}/toggle-active', [ClientNameController::class, 'toggleActive']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {

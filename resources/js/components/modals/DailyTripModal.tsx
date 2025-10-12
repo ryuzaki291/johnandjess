@@ -2,6 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { DailyTrip, DailyTripFormData } from '../../types/DailyTrip';
 import { formatPesoInput, parsePesoInput, handlePesoInput } from '../../utils/pesoFormatter';
 
+interface ClientName {
+    id: number;
+    name: string;
+    description: string | null;
+    is_active: boolean;
+    is_default: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+// Helper function to check if client is FUTURENET (uses 2% EWT instead of 5%)
+const isFuturenetClient = (clientName: string): boolean => {
+    return clientName.toLowerCase().includes('futurenet');
+};
+
 interface DailyTripModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -94,6 +109,44 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
     });
 
     const [errors, setErrors] = useState<Record<string, string[]>>({});
+    const [clientNames, setClientNames] = useState<ClientName[]>([]);
+    const [loadingClientNames, setLoadingClientNames] = useState(false);
+
+    // Fetch client names from API
+    const fetchClientNames = async () => {
+        setLoadingClientNames(true);
+        try {
+            console.log('Fetching client names...');
+            const response = await fetch('/api/client-names/active');
+            console.log('Response status:', response.status);
+            
+            if (response.ok) {
+                const result = await response.json();
+                console.log('API response:', result);
+                
+                // Ensure we always have an array
+                const data = result.data || result;
+                console.log('Extracted data:', data, 'Is array:', Array.isArray(data));
+                
+                setClientNames(Array.isArray(data) ? data : []);
+            } else {
+                console.error('Failed to fetch client names, status:', response.status);
+                setClientNames([]);
+            }
+        } catch (error) {
+            console.error('Error fetching client names:', error);
+            setClientNames([]);
+        } finally {
+            setLoadingClientNames(false);
+        }
+    };
+
+    // Fetch client names when modal opens
+    useEffect(() => {
+        if (isOpen) {
+            fetchClientNames();
+        }
+    }, [isOpen]);
 
     useEffect(() => {
         if (editingTrip) {
@@ -191,7 +244,7 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                 const totalSales = amountNetOfVat + vat;
                 
                 // Withholding Tax based on company (2% for FUTURENET, 5% for others)
-                const ewtRate = formData.company_assigned === 'FUTURENET AND TECHNOLOGY CORPORATION' ? 0.02 : 0.05;
+                const ewtRate = isFuturenetClient(formData.company_assigned || '') ? 0.02 : 0.05;
                 const withholdingTax = amountNetOfVat * ewtRate;
                 
                 // Total Amount Due = Total Sales - Withholding Tax
@@ -232,7 +285,7 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                         const totalSales = amountNetOfVat + vat;
                         
                         // Withholding Tax based on new company (2% for FUTURENET, 5% for others)
-                        const ewtRate = value === 'FUTURENET AND TECHNOLOGY CORPORATION' ? 0.02 : 0.05;
+                        const ewtRate = isFuturenetClient(value) ? 0.02 : 0.05;
                         const withholdingTax = amountNetOfVat * ewtRate;
                         
                         // Total Amount Due = Total Sales - Withholding Tax
@@ -538,7 +591,7 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                         {/* Company Assigned */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Company Assigned *
+                                Client Name *
                             </label>
                             <select
                                 name="company_assigned"
@@ -548,10 +601,15 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                                 required
                             >
                                 <option value="">Select Company</option>
-                                <option value="DITO TELECOMMUNITY CORPORATION">DITO TELECOMMUNITY CORPORATION</option>
-                                <option value="CHINA COMMUNICATION SERVICES PHILIPPINES CORPORATION">CHINA COMMUNICATION SERVICES PHILIPPINES CORPORATION</option>
-                                <option value="FUTURENET AND TECHNOLOGY CORPORATION">FUTURENET AND TECHNOLOGY CORPORATION</option>
-                                <option value="BESTWORLD ENGINEERING SDN BHD">BESTWORLD ENGINEERING SDN BHD</option>
+                                {loadingClientNames ? (
+                                    <option disabled>Loading companies...</option>
+                                ) : (
+                                    Array.isArray(clientNames) ? clientNames.map((client) => (
+                                        <option key={client.id} value={client.name}>
+                                            {client.name}
+                                        </option>
+                                    )) : null
+                                )}
                             </select>
                             {errors.company_assigned && (
                                 <p className="text-red-500 text-xs mt-1">{errors.company_assigned[0]}</p>
@@ -620,7 +678,7 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                         {/* LESS: Withholding Tax (Dynamic %) */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                LESS: Withholding Tax ({formData.company_assigned === 'FUTURENET AND TECHNOLOGY CORPORATION' ? '2%' : '5%'}) (Auto-calculated)
+                                LESS: Withholding Tax ({isFuturenetClient(formData.company_assigned || '') ? '2%' : '5%'}) (Auto-calculated)
                                 <span className="text-blue-600 text-xs ml-1">📊</span>
                             </label>
                             <input

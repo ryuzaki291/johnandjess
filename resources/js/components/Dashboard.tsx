@@ -7,6 +7,7 @@ import Maintenance from './pages/Maintenance';
 import Contracts from './pages/Contracts';
 import IncidentReport from './pages/IncidentReport';
 import UserManagement from './pages/UserManagement';
+import ClientNameWrapper from '../pages/Settings/ClientNameWrapper';
 
 interface DashboardProps {
     user: any;
@@ -1339,6 +1340,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                 <Route path="/contracts" element={<Contracts />} />
                 <Route path="/incident-report" element={<IncidentReport />} />
                 <Route path="/user-management" element={<UserManagement token={token} />} />
+                <Route path="/settings/client-name" element={<ClientNameWrapper />} />
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/*" element={<Navigate to="/dashboard" replace />} />
             </Routes>

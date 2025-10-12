@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ClientNameController;
 
 // Test route
 Route::get('/test', function () {
@@ -91,6 +92,9 @@ Route::get('/test-trip-creation', function () {
         ], 500);
     }
 });
+
+// Settings routes
+Route::get('/settings/client-names', [ClientNameController::class, 'index'])->name('settings.client-names');
 
 // Catch all route for React Router (SPA)
 // This should be the last route so it doesn't interfere with API routes
