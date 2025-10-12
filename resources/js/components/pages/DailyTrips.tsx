@@ -135,10 +135,10 @@ const DailyTrips: React.FC = () => {
 
     // Sorting and pagination functions
     const filteredTrips = trips.filter(trip =>
-        (trip.customer_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (trip.driver || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (trip.plate_number || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (trip.destination || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (trip.month_year || '').toLowerCase().includes(searchTerm.toLowerCase())
+        (trip.location || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (trip.month || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const sortedTrips = filteredTrips.sort((a, b) => {
@@ -206,13 +206,13 @@ const DailyTrips: React.FC = () => {
         
         // Fix for Total Revenue - ensure we're working with numbers
         const totalRevenue = trips.reduce((sum, trip) => {
-            const amount = parseFloat(trip.total_amount?.toString() || '0');
+            const amount = parseFloat(trip.total_amount_due?.toString() || '0');
             return sum + (isNaN(amount) ? 0 : amount);
         }, 0);
         
         // Fix for Amount Billed - ensure we're working with numbers
         const totalBilled = trips.reduce((sum, trip) => {
-            const amount = parseFloat(trip.amount_billed?.toString() || '0');
+            const amount = parseFloat(trip.amount_net_of_vat?.toString() || '0');
             return sum + (isNaN(amount) ? 0 : amount);
         }, 0);
         
@@ -873,7 +873,7 @@ const DailyTrips: React.FC = () => {
                                 </div>
                                 <input
                                     type="text"
-                                    placeholder="Search trips by customer, vehicle, destination, or date..."
+                                    placeholder="Search trips by driver, vehicle, location, or month..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900 placeholder-slate-500"
@@ -932,30 +932,30 @@ const DailyTrips: React.FC = () => {
                             <div className="p-6">
                                 <div className="flex justify-between items-start mb-4">
                                     <div>
-                                        <h3 className="text-lg font-bold text-slate-900">{trip.customer_name || 'Unnamed Customer'}</h3>
-                                        <p className="text-sm text-slate-500">{trip.month_year} • {trip.plate_number || 'No Vehicle'}</p>
+                                        <h3 className="text-lg font-bold text-slate-900">{trip.driver || 'Unnamed Driver'}</h3>
+                                        <p className="text-sm text-slate-500">{trip.month} • {trip.plate_number || 'No Vehicle'}</p>
                                     </div>
                                     <span className="text-sm font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">
-                                        {formatCurrency(trip.amount_billed)}
+                                        {formatCurrency(trip.amount_net_of_vat)}
                                     </span>
                                 </div>
                                 
                                 <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
                                     <div>
-                                        <p className="text-slate-500 font-medium">Destination</p>
-                                        <p className="text-slate-900 truncate">{trip.destination || 'N/A'}</p>
+                                        <p className="text-slate-500 font-medium">Location</p>
+                                        <p className="text-slate-900 truncate">{trip.location || 'N/A'}</p>
                                     </div>
                                     <div>
-                                        <p className="text-slate-500 font-medium">Total Allowance</p>
-                                        <p className="text-slate-900">{formatCurrency(trip.total_allowance)}</p>
+                                        <p className="text-slate-500 font-medium">Total Amount Due</p>
+                                        <p className="text-slate-900">{formatCurrency(trip.total_amount_due)}</p>
                                     </div>
                                     <div>
-                                        <p className="text-slate-500 font-medium">From Date</p>
-                                        <p className="text-slate-900">{formatDate(trip.date_from || null)}</p>
+                                        <p className="text-slate-500 font-medium">Start Date</p>
+                                        <p className="text-slate-900">{formatDate(trip.start_date || null)}</p>
                                     </div>
                                     <div>
-                                        <p className="text-slate-500 font-medium">To Date</p>
-                                        <p className="text-slate-900">{formatDate(trip.date_to || null)}</p>
+                                        <p className="text-slate-500 font-medium">End Date</p>
+                                        <p className="text-slate-900">{formatDate(trip.end_date || null)}</p>
                                     </div>
                                 </div>
 
@@ -978,7 +978,7 @@ const DailyTrips: React.FC = () => {
                                         <span className="ml-1">Edit</span>
                                     </button>
                                     <button 
-                                        onClick={() => handleDeleteTrip(trip.id, `${trip.customer_name} - ${trip.destination}`)}
+                                        onClick={() => handleDeleteTrip(trip.id, `${trip.driver} - ${trip.location}`)}
                                         className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 text-sm font-medium rounded-lg transition-colors duration-200"
                                     >
                                         <DeleteIcon />
@@ -1027,10 +1027,10 @@ const DailyTrips: React.FC = () => {
                                         Trip Details
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                                        Customer & Vehicle
+                                        Driver & Vehicle
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                                        Destination & Dates
+                                        Location & Dates
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
                                         Financial Details
@@ -1056,31 +1056,31 @@ const DailyTrips: React.FC = () => {
                                     <tr key={trip.id} className="hover:bg-slate-50 transition-colors duration-150">
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div>
-                                                <div className="text-sm font-semibold text-slate-900">{trip.month_year || 'No Date'}</div>
+                                                <div className="text-sm font-semibold text-slate-900">{trip.month || 'No Date'}</div>
                                                 <div className="text-sm text-slate-500">{trip.department || 'No Department'}</div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div>
-                                                <div className="text-sm font-medium text-slate-900">{trip.customer_name || 'Unnamed Customer'}</div>
+                                                <div className="text-sm font-medium text-slate-900">{trip.driver || 'Unnamed Driver'}</div>
                                                 <div className="text-sm text-slate-500">{trip.plate_number || 'No Vehicle'}</div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div>
-                                                <div className="text-sm text-slate-900">{trip.destination || 'No Destination'}</div>
+                                                <div className="text-sm text-slate-900">{trip.location || 'No Location'}</div>
                                                 <div className="text-sm text-slate-500">
-                                                    {formatDate(trip.date_from || null)} - {formatDate(trip.date_to || null)}
+                                                    {formatDate(trip.start_date || null)} - {formatDate(trip.end_date || null)}
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div>
                                                 <div className="text-sm font-medium text-slate-900">
-                                                    Allowance: {formatCurrency(trip.total_allowance)}
+                                                    Net Amount: {formatCurrency(trip.amount_net_of_vat)}
                                                 </div>
                                                 <div className="text-sm text-green-600 font-semibold">
-                                                    Billed: {formatCurrency(trip.amount_billed)}
+                                                    Total Due: {formatCurrency(trip.total_amount_due)}
                                                 </div>
                                             </div>
                                         </td>
@@ -1112,7 +1112,7 @@ const DailyTrips: React.FC = () => {
                                                     <EditIcon />
                                                 </button>
                                                 <button 
-                                                    onClick={() => handleDeleteTrip(trip.id, `${trip.customer_name} - ${trip.destination}`)}
+                                                    onClick={() => handleDeleteTrip(trip.id, `${trip.driver} - ${trip.location}`)}
                                                     className="inline-flex items-center p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
                                                     title="Delete Trip"
                                                 >
@@ -1251,7 +1251,7 @@ const DailyTrips: React.FC = () => {
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <h2 className="text-2xl font-bold text-slate-900">Trip Details</h2>
-                                        <p className="text-slate-600">Complete information for {viewTrip.customer_name || 'Trip'}</p>
+                                        <p className="text-slate-600">Complete information for {viewTrip.driver || 'Trip'}</p>
                                     </div>
                                     <button
                                         onClick={() => setShowViewModal(false)}
@@ -1270,12 +1270,12 @@ const DailyTrips: React.FC = () => {
                                             <TruckIcon />
                                         </div>
                                         <div className="ml-4">
-                                            <h3 className="text-xl font-bold text-slate-900">{viewTrip.customer_name || 'Unnamed Customer'}</h3>
-                                            <p className="text-slate-600">{viewTrip.destination || 'No destination'} • {viewTrip.plate_number || 'No vehicle'}</p>
+                                            <h3 className="text-xl font-bold text-slate-900">{viewTrip.driver || 'Unnamed Driver'}</h3>
+                                            <p className="text-slate-600">{viewTrip.location || 'No location'} • {viewTrip.plate_number || 'No vehicle'}</p>
                                         </div>
                                         <div className="ml-auto">
                                             <span className="px-4 py-2 rounded-full text-sm font-semibold bg-green-100 text-green-800">
-                                                {formatCurrency(viewTrip.amount_billed)}
+                                                {formatCurrency(viewTrip.amount_net_of_vat)}
                                             </span>
                                         </div>
                                     </div>
@@ -1288,28 +1288,28 @@ const DailyTrips: React.FC = () => {
                                             <h4 className="text-lg font-semibold text-slate-900 mb-4">Trip Information</h4>
                                             <div className="space-y-4">
                                                 <div className="flex justify-between">
-                                                    <span className="text-slate-600 font-medium">Customer:</span>
-                                                    <span className="text-slate-900 font-semibold">{viewTrip.customer_name || 'N/A'}</span>
+                                                    <span className="text-slate-600 font-medium">Driver:</span>
+                                                    <span className="text-slate-900 font-semibold">{viewTrip.driver || 'N/A'}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span className="text-slate-600 font-medium">Month/Year:</span>
-                                                    <span className="text-slate-900">{viewTrip.month_year || 'N/A'}</span>
+                                                    <span className="text-slate-600 font-medium">Month:</span>
+                                                    <span className="text-slate-900">{viewTrip.month || 'N/A'}</span>
                                                 </div>
                                                 <div className="flex justify-between">
                                                     <span className="text-slate-600 font-medium">Department:</span>
                                                     <span className="text-slate-900">{viewTrip.department || 'N/A'}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span className="text-slate-600 font-medium">Vehicle Unit:</span>
-                                                    <span className="text-slate-900">{viewTrip.vehicle_unit || 'N/A'}</span>
+                                                    <span className="text-slate-600 font-medium">Vehicle Type:</span>
+                                                    <span className="text-slate-900">{viewTrip.vehicle_type || 'N/A'}</span>
                                                 </div>
                                                 <div className="flex justify-between">
                                                     <span className="text-slate-600 font-medium">Plate Number:</span>
                                                     <span className="text-slate-900">{viewTrip.plate_number || 'N/A'}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span className="text-slate-600 font-medium">Destination:</span>
-                                                    <span className="text-slate-900">{viewTrip.destination || 'N/A'}</span>
+                                                    <span className="text-slate-600 font-medium">Location:</span>
+                                                    <span className="text-slate-900">{viewTrip.location || 'N/A'}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -1318,16 +1318,16 @@ const DailyTrips: React.FC = () => {
                                             <h4 className="text-lg font-semibold text-slate-900 mb-4">Trip Dates</h4>
                                             <div className="space-y-4">
                                                 <div className="flex justify-between">
-                                                    <span className="text-slate-600 font-medium">From Date:</span>
-                                                    <span className="text-slate-900">{formatDate(viewTrip.date_from || null)}</span>
+                                                    <span className="text-slate-600 font-medium">Start Date:</span>
+                                                    <span className="text-slate-900">{formatDate(viewTrip.start_date || null)}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span className="text-slate-600 font-medium">To Date:</span>
-                                                    <span className="text-slate-900">{formatDate(viewTrip.date_to || null)}</span>
+                                                    <span className="text-slate-600 font-medium">End Date:</span>
+                                                    <span className="text-slate-900">{formatDate(viewTrip.end_date || null)}</span>
                                                 </div>
                                                 <div>
-                                                    <span className="text-slate-600 font-medium block mb-1">Particular:</span>
-                                                    <span className="text-slate-900">{viewTrip.particular || 'N/A'}</span>
+                                                    <span className="text-slate-600 font-medium block mb-1">Description:</span>
+                                                    <span className="text-slate-900">{viewTrip.description || 'N/A'}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -1338,24 +1338,24 @@ const DailyTrips: React.FC = () => {
                                             <h4 className="text-lg font-semibold text-slate-900 mb-4">Financial Details</h4>
                                             <div className="space-y-4">
                                                 <div className="flex justify-between">
-                                                    <span className="text-slate-600 font-medium">Total Allowance:</span>
-                                                    <span className="text-slate-900 font-semibold">{formatCurrency(viewTrip.total_allowance)}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-slate-600 font-medium">Driver's Networth:</span>
-                                                    <span className="text-slate-900">{formatCurrency(viewTrip.drivers_networth)}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-slate-600 font-medium">Amount Billed:</span>
-                                                    <span className="text-green-600 font-semibold">{formatCurrency(viewTrip.amount_billed)}</span>
+                                                    <span className="text-slate-600 font-medium">Amount Net of VAT:</span>
+                                                    <span className="text-slate-900 font-semibold">{formatCurrency(viewTrip.amount_net_of_vat)}</span>
                                                 </div>
                                                 <div className="flex justify-between">
                                                     <span className="text-slate-600 font-medium">VAT (12%):</span>
-                                                    <span className="text-slate-900">{formatCurrency(viewTrip.vat_12_percent)}</span>
+                                                    <span className="text-slate-900">{formatCurrency(viewTrip.add_vat_12_percent)}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-slate-600 font-medium">Total Sales (VAT Inclusive):</span>
+                                                    <span className="text-green-600 font-semibold">{formatCurrency(viewTrip.total_sales_vat_inclusive)}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-slate-600 font-medium">Withholding Tax (5%):</span>
+                                                    <span className="text-slate-900">{formatCurrency(viewTrip.less_withholding_tax_5_percent)}</span>
                                                 </div>
                                                 <div className="flex justify-between border-t pt-2">
-                                                    <span className="text-slate-600 font-medium">Total Amount:</span>
-                                                    <span className="text-slate-900 font-bold text-lg">{formatCurrency(viewTrip.total_amount)}</span>
+                                                    <span className="text-slate-600 font-medium">Total Amount Due:</span>
+                                                    <span className="text-slate-900 font-bold text-lg">{formatCurrency(viewTrip.total_amount_due)}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -1364,16 +1364,12 @@ const DailyTrips: React.FC = () => {
                                             <h4 className="text-lg font-semibold text-slate-900 mb-4">Status & Invoice</h4>
                                             <div className="space-y-4">
                                                 <div className="flex justify-between">
-                                                    <span className="text-slate-600 font-medium">Status 1:</span>
-                                                    <span className="text-slate-900">{viewTrip.status_1 || 'N/A'}</span>
+                                                    <span className="text-slate-600 font-medium">Status:</span>
+                                                    <span className="text-slate-900">{viewTrip.status || 'N/A'}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span className="text-slate-600 font-medium">Status 2:</span>
-                                                    <span className="text-slate-900">{viewTrip.status_2 || 'N/A'}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-slate-600 font-medium">Service Invoice:</span>
-                                                    <span className="text-slate-900">{viewTrip.service_invoice || 'N/A'}</span>
+                                                    <span className="text-slate-600 font-medium">Service Invoice No:</span>
+                                                    <span className="text-slate-900">{viewTrip.service_invoice_no || 'N/A'}</span>
                                                 </div>
                                                 <div className="flex justify-between">
                                                     <span className="text-slate-600 font-medium">Created:</span>
