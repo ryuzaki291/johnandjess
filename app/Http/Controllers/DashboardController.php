@@ -36,7 +36,7 @@ class DashboardController extends Controller
                 ->pluck('count', 'vehicle_status');
 
             // Get recent daily trips (last 30 days)
-            $recentTrips = DailyTrip::where('date_from', '>=', Carbon::now()->subDays(30))
+            $recentTrips = DailyTrip::where('start_date', '>=', Carbon::now()->subDays(30))
                 ->count();
 
             // Get pending/open incident reports

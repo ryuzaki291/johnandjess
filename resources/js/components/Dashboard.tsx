@@ -776,11 +776,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                                     <div className="bg-gray-50 p-4 rounded-lg">
                                         <p className="text-sm font-medium text-gray-500 mb-1">Date Added</p>
                                         <p className="text-lg font-semibold text-gray-900">
-                                            {new Date(searchResults.vehicle.add_date_in_company).toLocaleDateString('en-US', {
+                                            {searchResults.vehicle.add_date_in_company ? new Date(searchResults.vehicle.add_date_in_company).toLocaleDateString('en-US', {
                                                 year: 'numeric',
                                                 month: 'long',
                                                 day: 'numeric'
-                                            })}
+                                            }) : 'Not specified'}
                                         </p>
                                     </div>
                                     <div className="bg-gray-50 p-4 rounded-lg">
@@ -789,7 +789,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                                     </div>
                                     <div className="bg-gray-50 p-4 rounded-lg">
                                         <p className="text-sm font-medium text-gray-500 mb-1">Created By</p>
-                                        <p className="text-lg font-semibold text-gray-900">{searchResults.vehicle.creator || 'Not specified'}</p>
+                                        <p className="text-lg font-semibold text-gray-900">{searchResults.vehicle.created_by?.name || 'Not specified'}</p>
                                     </div>
                                     <div className="bg-gray-50 p-4 rounded-lg">
                                         <p className="text-sm font-medium text-gray-500 mb-1">Creation Date</p>
@@ -897,58 +897,88 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                                     </div>
                                 </div>
                                 <div className="overflow-x-auto">
-                                    <div className="min-w-full" style={{ minWidth: '1800px' }}>
+                                    <div className="min-w-full" style={{ minWidth: '3200px' }}>
                                         <div className="bg-gray-50 flex text-xs font-semibold text-gray-700 uppercase tracking-wider border-b border-gray-200">
-                                            <div className="px-3 py-3 w-20">Period</div>
-                                            <div className="px-3 py-3 w-20">Dept</div>
-                                            <div className="px-3 py-3 w-28">Vehicle Unit</div>
-                                            <div className="px-3 py-3 w-32">Customer</div>
-                                            <div className="px-3 py-3 w-40">Destination</div>
-                                            <div className="px-3 py-3 w-24">From</div>
-                                            <div className="px-3 py-3 w-24">To</div>
-                                            <div className="px-3 py-3 w-48">Particular</div>
-                                            <div className="px-3 py-3 w-28">Allowance</div>
-                                            <div className="px-3 py-3 w-28">Driver Pay</div>
-                                            <div className="px-3 py-3 w-20">Status</div>
-                                            <div className="px-3 py-3 w-28">Billed</div>
+                                            <div className="px-3 py-3 w-24">Month</div>
+                                            <div className="px-3 py-3 w-24">Start Date</div>
+                                            <div className="px-3 py-3 w-24">End Date</div>
+                                            <div className="px-3 py-3 w-24">Type</div>
+                                            <div className="px-3 py-3 w-20">Qty</div>
+                                            <div className="px-3 py-3 w-32">Driver</div>
+                                            <div className="px-3 py-3 w-40">Description</div>
+                                            <div className="px-3 py-3 w-32">Requestor</div>
+                                            <div className="px-3 py-3 w-24">Department</div>
+                                            <div className="px-3 py-3 w-32">Cost Center</div>
+                                            <div className="px-3 py-3 w-32">Location</div>
+                                            <div className="px-3 py-3 w-24">E-Bill No</div>
+                                            <div className="px-3 py-3 w-32">Company</div>
+                                            <div className="px-3 py-3 w-32">Client Name</div>
+                                            <div className="px-3 py-3 w-24">Net Amount</div>
                                             <div className="px-3 py-3 w-20">VAT</div>
-                                            <div className="px-3 py-3 w-28">Total</div>
+                                            <div className="px-3 py-3 w-28">Total Sales</div>
+                                            <div className="px-3 py-3 w-24">Less Tax</div>
+                                            <div className="px-3 py-3 w-24">Amount Due</div>
+                                            <div className="px-3 py-3 w-24">Paid Invoice</div>
+                                            <div className="px-3 py-3 w-20">Paid</div>
+                                            <div className="px-3 py-3 w-24">SI Date</div>
                                             <div className="px-3 py-3 w-24">Invoice</div>
-                                            <div className="px-3 py-3 w-24">Payment</div>
+                                            <div className="px-3 py-3 w-24">Payment Ref</div>
+                                            <div className="px-3 py-3 w-24">BIR 2307</div>
+                                            <div className="px-3 py-3 w-24">Billing Date</div>
+                                            <div className="px-3 py-3 w-24">Due Date</div>
+                                            <div className="px-3 py-3 w-32">Remarks</div>
+                                            <div className="px-3 py-3 w-20">Status</div>
                                         </div>
                                         <div className="bg-white divide-y divide-gray-100">
                                             {searchResults.daily_trips.map((trip, index) => (
                                                 <div key={index} className="flex text-sm hover:bg-gray-50 transition-colors">
-                                                    <div className="px-3 py-4 w-20 font-medium text-gray-900">{trip.month_year}</div>
-                                                    <div className="px-3 py-4 w-20 text-gray-600">{trip.department}</div>
-                                                    <div className="px-3 py-4 w-28 text-gray-600">{trip.vehicle_unit || 'N/A'}</div>
-                                                    <div className="px-3 py-4 w-32 font-medium text-gray-900 truncate" title={trip.customer_name}>{trip.customer_name}</div>
-                                                    <div className="px-3 py-4 w-40 text-gray-700 truncate" title={trip.destination}>{trip.destination}</div>
+                                                    <div className="px-3 py-4 w-24 font-medium text-gray-900">{trip.month || 'N/A'}</div>
                                                     <div className="px-3 py-4 w-24 text-gray-600">
-                                                        {new Date(trip.date_from).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}
+                                                        {trip.start_date ? new Date(trip.start_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: '2-digit'}) : 'N/A'}
                                                     </div>
                                                     <div className="px-3 py-4 w-24 text-gray-600">
-                                                        {new Date(trip.date_to).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}
+                                                        {trip.end_date ? new Date(trip.end_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: '2-digit'}) : 'N/A'}
                                                     </div>
-                                                    <div className="px-3 py-4 w-48 text-gray-700 truncate" title={trip.particular}>{trip.particular || 'N/A'}</div>
-                                                    <div className="px-3 py-4 w-28 font-semibold text-green-700">₱{trip.total_allowance?.toLocaleString()}</div>
-                                                    <div className="px-3 py-4 w-28 font-semibold text-blue-700">₱{trip.drivers_networth?.toLocaleString()}</div>
+                                                    <div className="px-3 py-4 w-24 text-gray-600">{trip.vehicle_type || 'N/A'}</div>
+                                                    <div className="px-3 py-4 w-20 text-gray-600">{trip.qty || 'N/A'}</div>
+                                                    <div className="px-3 py-4 w-32 font-medium text-gray-900 truncate" title={trip.driver}>{trip.driver || 'N/A'}</div>
+                                                    <div className="px-3 py-4 w-40 text-gray-700 truncate" title={trip.description}>{trip.description || 'N/A'}</div>
+                                                    <div className="px-3 py-4 w-32 text-gray-600 truncate" title={trip.requestor}>{trip.requestor || 'N/A'}</div>
+                                                    <div className="px-3 py-4 w-24 text-gray-600">{trip.department || 'N/A'}</div>
+                                                    <div className="px-3 py-4 w-32 text-gray-600 truncate" title={trip.cost_center}>{trip.cost_center || 'N/A'}</div>
+                                                    <div className="px-3 py-4 w-32 text-gray-600 truncate" title={trip.location}>{trip.location || 'N/A'}</div>
+                                                    <div className="px-3 py-4 w-24 text-gray-600 text-xs">{trip.e_bill_no || 'N/A'}</div>
+                                                    <div className="px-3 py-4 w-32 text-gray-600 truncate" title={trip.company_assigned}>{trip.company_assigned || 'N/A'}</div>
+                                                    <div className="px-3 py-4 w-32 text-gray-600 truncate" title={trip.client_name?.name}>{trip.client_name?.name || 'N/A'}</div>
+                                                    <div className="px-3 py-4 w-24 font-semibold text-green-700">₱{trip.amount_net_of_vat?.toLocaleString() || '0'}</div>
+                                                    <div className="px-3 py-4 w-20 text-orange-600">₱{trip.add_vat_12_percent?.toLocaleString() || '0'}</div>
+                                                    <div className="px-3 py-4 w-28 font-bold text-gray-900">₱{trip.total_sales_vat_inclusive?.toLocaleString() || '0'}</div>
+                                                    <div className="px-3 py-4 w-24 text-red-600">₱{trip.less_withholding_tax_5_percent?.toLocaleString() || '0'}</div>
+                                                    <div className="px-3 py-4 w-24 font-bold text-blue-700">₱{trip.total_amount_due?.toLocaleString() || '0'}</div>
+                                                    <div className="px-3 py-4 w-24 font-semibold text-purple-700">₱{trip.total_paid_invoice?.toLocaleString() || '0'}</div>
+                                                    <div className="px-3 py-4 w-20 text-gray-600">{trip.paid_invoice || 'N/A'}</div>
+                                                    <div className="px-3 py-4 w-24 text-gray-600 text-xs">
+                                                        {trip.issuance_date_of_si ? new Date(trip.issuance_date_of_si).toLocaleDateString('en-US', {month: 'short', day: 'numeric'}) : 'N/A'}
+                                                    </div>
+                                                    <div className="px-3 py-4 w-24 font-mono text-gray-600 text-xs">{trip.service_invoice_no || 'N/A'}</div>
+                                                    <div className="px-3 py-4 w-24 text-gray-600 text-xs">{trip.payment_ref_no || 'N/A'}</div>
+                                                    <div className="px-3 py-4 w-24 text-gray-600 text-xs">{trip.bir_form_2307 || 'N/A'}</div>
+                                                    <div className="px-3 py-4 w-24 text-gray-600 text-xs">
+                                                        {trip.date_of_billing ? new Date(trip.date_of_billing).toLocaleDateString('en-US', {month: 'short', day: 'numeric'}) : 'N/A'}
+                                                    </div>
+                                                    <div className="px-3 py-4 w-24 text-gray-600 text-xs">
+                                                        {trip.due_date ? new Date(trip.due_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'}) : 'N/A'}
+                                                    </div>
+                                                    <div className="px-3 py-4 w-32 text-gray-600 text-xs truncate" title={trip.remarks}>{trip.remarks || 'N/A'}</div>
                                                     <div className="px-3 py-4 w-20">
-                                                        <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                                                            {trip.status_1}
-                                                        </span>
-                                                    </div>
-                                                    <div className="px-3 py-4 w-28 font-semibold text-gray-900">₱{trip.amount_billed?.toLocaleString()}</div>
-                                                    <div className="px-3 py-4 w-20 text-orange-600">₱{trip.vat_12_percent?.toLocaleString()}</div>
-                                                    <div className="px-3 py-4 w-28 font-bold text-gray-900">₱{trip.total_amount?.toLocaleString()}</div>
-                                                    <div className="px-3 py-4 w-24 font-mono text-gray-600 text-xs">{trip.service_invoice}</div>
-                                                    <div className="px-3 py-4 w-24">
                                                         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                                                            trip.status_2 === 'Paid' 
+                                                            trip.status === 'Completed' || trip.status === 'Paid'
                                                                 ? 'bg-green-100 text-green-800' 
-                                                                : 'bg-yellow-100 text-yellow-800'
+                                                                : trip.status === 'Pending'
+                                                                ? 'bg-yellow-100 text-yellow-800'
+                                                                : 'bg-gray-100 text-gray-800'
                                                         }`}>
-                                                            {trip.status_2}
+                                                            {trip.status || 'N/A'}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -960,7 +990,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                                     <div className="flex justify-between text-sm text-gray-600">
                                         <span>Total trips recorded: {searchResults.daily_trips.length}</span>
                                         <span>
-                                            Total revenue: ₱{searchResults.daily_trips.reduce((sum, trip) => sum + (trip.total_amount || 0), 0).toLocaleString()}
+                                            Total revenue: ₱{searchResults.daily_trips.reduce((sum, trip) => sum + (parseFloat(trip.total_sales_vat_inclusive) || 0), 0).toLocaleString()}
                                         </span>
                                     </div>
                                 </div>
@@ -1000,15 +1030,15 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{maintenance.driver_name}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{maintenance.odometer_record}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {new Date(maintenance.date).toLocaleDateString()}
+                                                        {maintenance.date ? new Date(maintenance.date).toLocaleDateString() : 'N/A'}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{maintenance.performed}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{maintenance.amount}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{parseFloat(maintenance.amount || 0).toLocaleString()}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{maintenance.qty}</td>
-                                                    <td className="px-6 py-4 text-sm text-gray-900">{maintenance.description}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{maintenance.next_pms}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{maintenance.registration_month_date}</td>
-                                                    <td className="px-6 py-4 text-sm text-gray-900">{maintenance.parts}</td>
+                                                    <td className="px-6 py-4 text-sm text-gray-900">{maintenance.description || 'N/A'}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{maintenance.next_pms || 'N/A'}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{maintenance.registration_month_date || 'N/A'}</td>
+                                                    <td className="px-6 py-4 text-sm text-gray-900">{maintenance.parts || 'N/A'}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                         {maintenance.documents && maintenance.documents.length > 0 ? (
                                                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
@@ -1065,14 +1095,14 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{maintenance.region_assign}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{maintenance.supplier_name}</td>
                                                     <td className="px-6 py-4 text-sm text-gray-900">{maintenance.vehicle_details}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{maintenance.odometer_record}</td>
-                                                    <td className="px-6 py-4 text-sm text-gray-900">{maintenance.remarks}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{maintenance.odometer_record || 'N/A'}</td>
+                                                    <td className="px-6 py-4 text-sm text-gray-900">{maintenance.remarks || 'N/A'}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {new Date(maintenance.date_of_pms).toLocaleDateString()}
+                                                        {maintenance.date_of_pms ? new Date(maintenance.date_of_pms).toLocaleDateString() : 'N/A'}
                                                     </td>
-                                                    <td className="px-6 py-4 text-sm text-gray-900">{maintenance.performed}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{maintenance.amount}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{maintenance.qty}</td>
+                                                    <td className="px-6 py-4 text-sm text-gray-900">{maintenance.performed || 'N/A'}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{parseFloat(maintenance.amount || 0).toLocaleString()}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{maintenance.qty || 'N/A'}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                         {maintenance.documents && maintenance.documents.length > 0 ? (
                                                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
@@ -1132,31 +1162,31 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                                             {searchResults.contracts.map((contract, index) => (
                                                 <tr key={index}>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{contract.id}</td>
-                                                    <td className="px-6 py-4 text-sm text-gray-900">{contract.particular}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{contract.vehicle_type}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{contract.owners_name}</td>
-                                                    <td className="px-6 py-4 text-sm text-gray-900">{contract.company_assigned}</td>
-                                                    <td className="px-6 py-4 text-sm text-gray-900">{contract.location_area}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{contract.drivers_name}</td>
-                                                    <td className="px-6 py-4 text-sm text-gray-900">{contract.amount_range}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{contract['12m_vat']}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{contract.contract_amount}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{contract.less_ewt}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{contract.final_amount}</td>
-                                                    <td className="px-6 py-4 text-sm text-gray-900">{contract.remarks}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{contract.suppliers_amount}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{contract.drivers_salary}</td>
+                                                    <td className="px-6 py-4 text-sm text-gray-900">{contract.particular || 'N/A'}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{contract.vehicle_type || 'N/A'}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{contract.owners_name || 'N/A'}</td>
+                                                    <td className="px-6 py-4 text-sm text-gray-900">{contract.company_assigned || 'N/A'}</td>
+                                                    <td className="px-6 py-4 text-sm text-gray-900">{contract.location_area || 'N/A'}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{contract.drivers_name || 'N/A'}</td>
+                                                    <td className="px-6 py-4 text-sm text-gray-900">{contract.amount_range || 'N/A'}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{contract['12m_vat'] || 'N/A'}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{parseFloat(contract.contract_amount || 0).toLocaleString()}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{parseFloat(contract.less_ewt || 0).toLocaleString()}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{parseFloat(contract.final_amount || 0).toLocaleString()}</td>
+                                                    <td className="px-6 py-4 text-sm text-gray-900">{contract.remarks || 'N/A'}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{parseFloat(contract.suppliers_amount || 0).toLocaleString()}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{parseFloat(contract.drivers_salary || 0).toLocaleString()}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                         {contract.revenue ? (
-                                                            <span className="font-semibold text-green-700">₱{contract.revenue}</span>
+                                                            <span className="font-semibold text-green-700">₱{parseFloat(contract.revenue).toLocaleString()}</span>
                                                         ) : (
                                                             <span className="text-gray-400">N/A</span>
                                                         )}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {new Date(contract.start_date).toLocaleDateString()}
+                                                        {contract.start_date ? new Date(contract.start_date).toLocaleDateString() : 'N/A'}
                                                     </td>
-                                                    <td className="px-6 py-4 text-sm text-gray-900">{contract.end_remarks}</td>
+                                                    <td className="px-6 py-4 text-sm text-gray-900">{contract.end_remarks || 'N/A'}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                         {contract.documents && contract.documents.length > 0 ? (
                                                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
@@ -1216,20 +1246,20 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                                             {searchResults.incident_reports.map((incident, index) => (
                                                 <tr key={index}>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{incident.id}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{incident.vehicle_type}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{incident.vehicle_owner}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{incident.incident_type}</td>
-                                                    <td className="px-6 py-4 text-sm text-gray-900">{incident.incident_description}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{incident.vehicle_type || 'N/A'}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{incident.vehicle_owner || 'N/A'}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{incident.incident_type || 'N/A'}</td>
+                                                    <td className="px-6 py-4 text-sm text-gray-900">{incident.incident_description || 'N/A'}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {new Date(incident.incident_date).toLocaleDateString()}
+                                                        {incident.incident_date ? new Date(incident.incident_date).toLocaleDateString() : 'N/A'}
                                                     </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{incident.incident_time}</td>
-                                                    <td className="px-6 py-4 text-sm text-gray-900">{incident.location}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{incident.reporter_name}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{incident.reporter_contact}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{incident.reporter_position}</td>
-                                                    <td className="px-6 py-4 text-sm text-gray-900">{incident.damage_description}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{incident.estimated_cost}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{incident.incident_time || 'N/A'}</td>
+                                                    <td className="px-6 py-4 text-sm text-gray-900">{incident.location || 'N/A'}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{incident.reporter_name || 'N/A'}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{incident.reporter_contact || 'N/A'}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{incident.reporter_position || 'N/A'}</td>
+                                                    <td className="px-6 py-4 text-sm text-gray-900">{incident.damage_description || 'N/A'}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{parseFloat(incident.estimated_cost || 0).toLocaleString()}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                         {incident.incident_images && incident.incident_images.length > 0 ? (
                                                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -1256,28 +1286,28 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                                            incident.severity_level === 'High' 
+                                                            incident.severity_level === 'High' || incident.severity_level === 'Critical'
                                                                 ? 'bg-red-100 text-red-800' 
                                                                 : incident.severity_level === 'Medium'
                                                                 ? 'bg-yellow-100 text-yellow-800'
                                                                 : 'bg-green-100 text-green-800'
                                                         }`}>
-                                                            {incident.severity_level}
+                                                            {incident.severity_level || 'Low'}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                                            incident.status === 'Resolved' 
+                                                            incident.status === 'Resolved' || incident.status === 'Closed'
                                                                 ? 'bg-green-100 text-green-800' 
                                                                 : incident.status === 'In Progress'
                                                                 ? 'bg-yellow-100 text-yellow-800'
                                                                 : 'bg-gray-100 text-gray-800'
                                                         }`}>
-                                                            {incident.status}
+                                                            {incident.status || 'Open'}
                                                         </span>
                                                     </td>
-                                                    <td className="px-6 py-4 text-sm text-gray-900">{incident.action_taken}</td>
-                                                    <td className="px-6 py-4 text-sm text-gray-900">{incident.notes}</td>
+                                                    <td className="px-6 py-4 text-sm text-gray-900">{incident.action_taken || 'N/A'}</td>
+                                                    <td className="px-6 py-4 text-sm text-gray-900">{incident.notes || 'N/A'}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                         {incident.creator?.name || 'N/A'}
                                                     </td>

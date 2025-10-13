@@ -80,4 +80,38 @@ class Vehicle extends Model
     {
         return $this->hasMany(DriversMaintenance::class, 'plate_number', 'plate_number');
     }
+
+    /**
+     * Get the last digit of the plate number.
+     *
+     * @return int|null Returns the last digit if it's numeric, null otherwise
+     */
+    public function getPlateLastDigitAttribute(): ?int
+    {
+        $lastChar = substr($this->plate_number, -1);
+        return is_numeric($lastChar) ? (int) $lastChar : null;
+    }
+
+    /**
+     * Scope to filter vehicles by the last digit of their plate number.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param int $digit The digit to filter by (0-9)
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeWhereLastDigit($query, int $digit)
+    {
+        return $query->where('plate_number', 'LIKE', '%' . $digit);
+    }
+
+    /**
+     * Scope to get vehicles with numeric last digit.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeWithNumericLastDigit($query)
+    {
+        return $query->where('plate_number', 'REGEXP', '[0-9]$');
+    }
 }

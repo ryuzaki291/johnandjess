@@ -58,16 +58,17 @@ class SearchController extends Controller
             $plateNumber = $request->plate_number;
             \Log::info('Searching for plate number: ' . $plateNumber);
 
-            // Get vehicle details
-            $vehicle = Vehicle::with('createdBy:id,name')
+            // Get vehicle details with all fields
+            $vehicle = Vehicle::with(['createdBy:id,name'])
                 ->where('plate_number', $plateNumber)
                 ->first();
 
             \Log::info('Vehicle found', ['vehicle' => $vehicle ? $vehicle->toArray() : null]);
 
-            // Get all related data
-            $dailyTrips = DailyTrip::where('plate_number', $plateNumber)
-                ->orderBy('date_from', 'desc')
+            // Get all related data with complete field selection and relationships
+            $dailyTrips = DailyTrip::with(['clientName:id,name'])
+                ->where('plate_number', $plateNumber)
+                ->orderBy('start_date', 'desc')
                 ->get();
 
             \Log::info('Daily trips found', ['count' => $dailyTrips->count()]);
