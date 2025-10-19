@@ -101,6 +101,52 @@ const SearchIcon = () => (
     </svg>
 );
 
+// Helper function to calculate automatic remarks based on due date
+const calculateRemarks = (dueDateString: string | null | undefined): string => {
+    if (!dueDateString) return '';
+    
+    try {
+        const dueDate = new Date(dueDateString);
+        const today = new Date();
+        
+        // Reset time to compare only dates
+        today.setHours(0, 0, 0, 0);
+        dueDate.setHours(0, 0, 0, 0);
+        
+        // Check if date is valid
+        if (isNaN(dueDate.getTime())) {
+            return '';
+        }
+        
+        const timeDiff = dueDate.getTime() - today.getTime();
+        const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+        
+        if (daysDiff < 0) {
+            return 'Overdue';
+        } else if (daysDiff === 0) {
+            return 'Due Today';
+        } else {
+            return 'Upcoming';
+        }
+    } catch (error) {
+        return '';
+    }
+};
+
+// Helper function to get remarks display styling
+const getRemarksStyle = (remarks: string): { className: string; icon: string } => {
+    switch (remarks) {
+        case 'Overdue':
+            return { className: 'text-red-700 bg-red-100 border-red-200', icon: '⚠️' };
+        case 'Due Today':
+            return { className: 'text-amber-700 bg-amber-100 border-amber-200', icon: '⏰' };
+        case 'Upcoming':
+            return { className: 'text-green-700 bg-green-100 border-green-200', icon: '✅' };
+        default:
+            return { className: 'text-gray-700 bg-gray-100 border-gray-200', icon: '📋' };
+    }
+};
+
 const DailyTrips: React.FC = () => {
     const [trips, setTrips] = useState<DailyTrip[]>([]);
     const [loading, setLoading] = useState(true);
@@ -927,13 +973,23 @@ const DailyTrips: React.FC = () => {
 
                 {/* Mobile Cards View */}
                 <div className="lg:hidden space-y-4">
-                    {currentTrips.map((trip) => (
+                    {currentTrips.map((trip) => {
+                        const autoRemarks = calculateRemarks(trip.due_date);
+                        const remarksStyle = getRemarksStyle(autoRemarks);
+                        
+                        return (
                         <div key={trip.id} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                             <div className="p-6">
                                 <div className="flex justify-between items-start mb-4">
                                     <div>
                                         <h3 className="text-lg font-bold text-slate-900">{trip.driver || 'Unnamed Driver'}</h3>
                                         <p className="text-sm text-slate-500">{trip.month} • {trip.plate_number || 'No Vehicle'}</p>
+                                        {autoRemarks && (
+                                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1 ${remarksStyle.className}`}>
+                                                <span className="mr-1">{remarksStyle.icon}</span>
+                                                {autoRemarks}
+                                            </span>
+                                        )}
                                     </div>
                                     <span className="text-sm font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">
                                         {formatCurrency(trip.amount_net_of_vat)}
@@ -987,7 +1043,8 @@ const DailyTrips: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-                    ))}
+                        );
+                    })}
                     {currentTrips.length === 0 && !loading && trips.length === 0 && (
                         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
                             <div className="mx-auto w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
@@ -1052,12 +1109,22 @@ const DailyTrips: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-slate-200">
-                                {currentTrips.map((trip) => (
+                                {currentTrips.map((trip) => {
+                                    const autoRemarks = calculateRemarks(trip.due_date);
+                                    const remarksStyle = getRemarksStyle(autoRemarks);
+                                    
+                                    return (
                                     <tr key={trip.id} className="hover:bg-slate-50 transition-colors duration-150">
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div>
                                                 <div className="text-sm font-semibold text-slate-900">{trip.month || 'No Date'}</div>
                                                 <div className="text-sm text-slate-500">{trip.department || 'No Department'}</div>
+                                                {autoRemarks && (
+                                                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1 ${remarksStyle.className}`}>
+                                                        <span className="mr-1">{remarksStyle.icon}</span>
+                                                        {autoRemarks}
+                                                    </span>
+                                                )}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
@@ -1121,7 +1188,8 @@ const DailyTrips: React.FC = () => {
                                             </div>
                                         </td>
                                     </tr>
-                                ))}
+                                    );
+                                })}
                             </tbody>
                         </table>
                         {currentTrips.length === 0 && !loading && trips.length === 0 && (
@@ -1378,6 +1446,24 @@ const DailyTrips: React.FC = () => {
                                                 <div className="flex justify-between">
                                                     <span className="text-slate-600 font-medium">Last Updated:</span>
                                                     <span className="text-slate-900">{formatDate(viewTrip.updated_at)}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-white border border-slate-200 rounded-xl p-6">
+                                            <h4 className="text-lg font-semibold text-slate-900 mb-4">Important Dates</h4>
+                                            <div className="space-y-4">
+                                                <div className="flex justify-between">
+                                                    <span className="text-slate-600 font-medium">Issuance Date of S.I:</span>
+                                                    <span className="text-slate-900">{formatDate(viewTrip.issuance_date_of_si || null)}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-slate-600 font-medium">Date of Billing:</span>
+                                                    <span className="text-slate-900">{formatDate(viewTrip.date_of_billing || null)}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-slate-600 font-medium">Due Date:</span>
+                                                    <span className="text-slate-900">{formatDate(viewTrip.due_date || null)}</span>
                                                 </div>
                                             </div>
                                         </div>

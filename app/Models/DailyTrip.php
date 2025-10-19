@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Carbon\Carbon;
 
 class DailyTrip extends Model
 {
+    use HasFactory;
     /**
      * The attributes that are mass assignable.
      *
@@ -91,4 +94,32 @@ class DailyTrip extends Model
     {
         return $this->belongsTo(ClientName::class, 'client_name_id');
     }
+
+    /**
+     * Get the automatically calculated remarks based on due date.
+     */
+    public function getAutoRemarksAttribute(): string
+    {
+        if (!$this->due_date) {
+            return '';
+        }
+
+        $today = Carbon::now()->startOfDay();
+        $dueDateCarbon = Carbon::parse($this->due_date)->startOfDay();
+
+        $daysDiff = $today->diffInDays($dueDateCarbon, false);
+
+        if ($daysDiff < 0) {
+            return 'Overdue';
+        } elseif ($daysDiff == 0) {
+            return 'Due Today';
+        } else {
+            return 'Upcoming';
+        }
+    }
+
+    /**
+     * Append auto_remarks to the model's array representation.
+     */
+    protected $appends = ['auto_remarks'];
 }

@@ -70,6 +70,83 @@ const formatDateForInput = (dateString: string | null | undefined): string => {
     }
 };
 
+// Helper function to calculate due date (60 days after billing date)
+const calculateDueDate = (billingDateString: string): string => {
+    if (!billingDateString) return '';
+    
+    try {
+        const billingDate = new Date(billingDateString);
+        
+        // Check if date is valid
+        if (isNaN(billingDate.getTime())) {
+            console.warn('Invalid billing date for due date calculation:', billingDateString);
+            return '';
+        }
+        
+        // Add 60 days to the billing date
+        const dueDate = new Date(billingDate);
+        dueDate.setDate(dueDate.getDate() + 60);
+        
+        // Format as YYYY-MM-DD for HTML date input
+        const year = dueDate.getFullYear();
+        const month = String(dueDate.getMonth() + 1).padStart(2, '0');
+        const day = String(dueDate.getDate()).padStart(2, '0');
+        
+        return `${year}-${month}-${day}`;
+    } catch (error) {
+        console.error('Error calculating due date:', error);
+        return '';
+    }
+};
+
+// Helper function to calculate automatic remarks based on due date
+const calculateRemarks = (dueDateString: string | null | undefined): string => {
+    if (!dueDateString) return '';
+    
+    try {
+        const dueDate = new Date(dueDateString);
+        const today = new Date();
+        
+        // Reset time to compare only dates
+        today.setHours(0, 0, 0, 0);
+        dueDate.setHours(0, 0, 0, 0);
+        
+        // Check if date is valid
+        if (isNaN(dueDate.getTime())) {
+            console.warn('Invalid due date for remarks calculation:', dueDateString);
+            return '';
+        }
+        
+        const timeDiff = dueDate.getTime() - today.getTime();
+        const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+        
+        if (daysDiff < 0) {
+            return 'Overdue';
+        } else if (daysDiff === 0) {
+            return 'Due Today';
+        } else {
+            return 'Upcoming';
+        }
+    } catch (error) {
+        console.error('Error calculating remarks:', error);
+        return '';
+    }
+};
+
+// Helper function to get remarks display color based on status
+const getRemarksColor = (remarks: string): string => {
+    switch (remarks) {
+        case 'Overdue':
+            return 'text-red-600 bg-red-50 border-red-200';
+        case 'Due Today':
+            return 'text-amber-600 bg-amber-50 border-amber-200';
+        case 'Upcoming':
+            return 'text-green-600 bg-green-50 border-green-200';
+        default:
+            return 'text-gray-600 bg-gray-50 border-gray-200';
+    }
+};
+
 const DailyTripModal: React.FC<DailyTripModalProps> = ({
     isOpen,
     onClose,
@@ -272,6 +349,42 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                     ...prev,
                     [name]: value
                 };
+                
+                // Automatic reflection: When issuance_date_of_si is set, automatically update date_of_billing
+                if (name === 'issuance_date_of_si' && value) {
+                    const billingDate = value;
+                    const dueDate = calculateDueDate(billingDate);
+                    const autoRemarks = calculateRemarks(dueDate);
+                    
+                    newData = {
+                        ...newData,
+                        date_of_billing: billingDate, // Automatically set billing date to match issuance date
+                        due_date: dueDate, // Automatically calculate due date (60 days after billing date)
+                        remarks: autoRemarks // Automatically calculate remarks based on due date
+                    };
+                }
+                
+                // Automatic due date calculation: When date_of_billing is set, automatically calculate due_date
+                if (name === 'date_of_billing' && value) {
+                    const dueDate = calculateDueDate(value);
+                    const autoRemarks = calculateRemarks(dueDate);
+                    
+                    newData = {
+                        ...newData,
+                        due_date: dueDate, // Automatically set due date to 60 days after billing date
+                        remarks: autoRemarks // Automatically calculate remarks based on due date
+                    };
+                }
+                
+                // Automatic remarks calculation: When due_date is manually changed, update remarks
+                if (name === 'due_date' && value) {
+                    const autoRemarks = calculateRemarks(value);
+                    
+                    newData = {
+                        ...newData,
+                        remarks: autoRemarks // Automatically calculate remarks based on due date
+                    };
+                }
                 
                 // Recalculate withholding tax when company changes (if net amount exists)
                 if (name === 'company_assigned' && prev.amount_net_of_vat) {
@@ -753,6 +866,7 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Issuance Date of S.I
+                                <span className="text-blue-600 text-xs ml-1">🔗</span>
                             </label>
                             <input
                                 type="date"
@@ -764,6 +878,9 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                             {errors.issuance_date_of_si && (
                                 <p className="text-red-500 text-xs mt-1">{errors.issuance_date_of_si[0]}</p>
                             )}
+                            <p className="text-xs text-blue-600 mt-1">
+                                This will automatically set the Date of Billing
+                            </p>
                         </div>
 
                         {/* Payment Ref No */}
@@ -830,35 +947,43 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                         {/* Date of Billing */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Date of Billing
+                                Date of Billing (Auto-filled)
+                                <span className="text-blue-600 text-xs ml-1">🔗</span>
                             </label>
                             <input
                                 type="date"
                                 name="date_of_billing"
                                 value={formData.date_of_billing}
                                 onChange={handleInputChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full border border-blue-200 rounded-md px-3 py-2 bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                             {errors.date_of_billing && (
                                 <p className="text-red-500 text-xs mt-1">{errors.date_of_billing[0]}</p>
                             )}
+                            <p className="text-xs text-blue-600 mt-1">
+                                Automatically reflects the Issuance Date of S.I and calculates Due Date (+60 days)
+                            </p>
                         </div>
 
                         {/* Due Date */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Due Date
+                                Due Date (Auto-calculated)
+                                <span className="text-purple-600 text-xs ml-1">📅</span>
                             </label>
                             <input
                                 type="date"
                                 name="due_date"
                                 value={formData.due_date}
                                 onChange={handleInputChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full border border-purple-200 rounded-md px-3 py-2 bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-500"
                             />
                             {errors.due_date && (
                                 <p className="text-red-500 text-xs mt-1">{errors.due_date[0]}</p>
                             )}
+                            <p className="text-xs text-purple-600 mt-1">
+                                Automatically set to 60 days after Date of Billing (can be manually adjusted)
+                            </p>
                         </div>
                     </div>
 
@@ -883,22 +1008,35 @@ const DailyTripModal: React.FC<DailyTripModalProps> = ({
                     {/* Remarks - Full width */}
                     <div className="mt-4">
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Remarks
+                            Remarks (Auto-calculated)
+                            <span className="text-indigo-600 text-xs ml-1">🏷️</span>
                         </label>
-                        <select
-                            name="remarks"
-                            value={formData.remarks}
-                            onChange={handleInputChange}
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="">Select Remarks</option>
-                            <option value="Due Today">Due Today</option>
-                            <option value="Overdue">Overdue</option>
-                            <option value="Upcoming">Upcoming</option>
-                        </select>
+                        <div className="relative">
+                            <select
+                                name="remarks"
+                                value={formData.remarks}
+                                onChange={handleInputChange}
+                                className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${getRemarksColor(formData.remarks || '')}`}
+                            >
+                                <option value="">Select Remarks</option>
+                                <option value="Due Today">Due Today</option>
+                                <option value="Overdue">Overdue</option>
+                                <option value="Upcoming">Upcoming</option>
+                            </select>
+                            {formData.remarks && (
+                                <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
+                                    {formData.remarks === 'Overdue' && <span className="text-red-500">⚠️</span>}
+                                    {formData.remarks === 'Due Today' && <span className="text-amber-500">⏰</span>}
+                                    {formData.remarks === 'Upcoming' && <span className="text-green-500">✅</span>}
+                                </div>
+                            )}
+                        </div>
                         {errors.remarks && (
                             <p className="text-red-500 text-xs mt-1">{errors.remarks[0]}</p>
                         )}
+                        <p className="text-xs text-indigo-600 mt-1">
+                            Automatically calculated based on Due Date vs current date (can be manually adjusted)
+                        </p>
                     </div>
 
                     {/* Form Actions */}

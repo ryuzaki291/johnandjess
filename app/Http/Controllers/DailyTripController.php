@@ -73,6 +73,19 @@ class DailyTripController extends Controller
                 'remarks' => 'nullable|string|in:Due Today,Overdue,Upcoming',
             ]);
 
+            // Auto-set billing date based on issuance date if not provided
+            if (!empty($validated['issuance_date_of_si']) && empty($validated['date_of_billing'])) {
+                $validated['date_of_billing'] = $validated['issuance_date_of_si'];
+            }
+            
+            // Auto-calculate due date (60 days after billing date) if not provided
+            if (!empty($validated['date_of_billing']) && empty($validated['due_date'])) {
+                $billingDate = new \DateTime($validated['date_of_billing']);
+                $dueDate = clone $billingDate;
+                $dueDate->add(new \DateInterval('P60D')); // Add 60 days
+                $validated['due_date'] = $dueDate->format('Y-m-d');
+            }
+
             Log::info('Validated data:', $validated);
 
             $trip = DailyTrip::create($validated);
@@ -163,6 +176,19 @@ class DailyTripController extends Controller
                 'due_date' => 'nullable|date',
                 'remarks' => 'nullable|string|in:Due Today,Overdue,Upcoming',
             ]);
+
+            // Auto-set billing date based on issuance date if not provided
+            if (!empty($validated['issuance_date_of_si']) && empty($validated['date_of_billing'])) {
+                $validated['date_of_billing'] = $validated['issuance_date_of_si'];
+            }
+            
+            // Auto-calculate due date (60 days after billing date) if not provided
+            if (!empty($validated['date_of_billing']) && empty($validated['due_date'])) {
+                $billingDate = new \DateTime($validated['date_of_billing']);
+                $dueDate = clone $billingDate;
+                $dueDate->add(new \DateInterval('P60D')); // Add 60 days
+                $validated['due_date'] = $dueDate->format('Y-m-d');
+            }
 
             $dailyTrip->update($validated);
             $dailyTrip->load('vehicle');
