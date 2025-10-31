@@ -8,6 +8,11 @@ import Contracts from './pages/Contracts';
 import IncidentReport from './pages/IncidentReport';
 import UserManagement from './pages/UserManagement';
 import ClientNameWrapper from '../pages/Settings/ClientNameWrapper';
+import VehicleRegistration from './pages/VehicleRegistration';
+import VehicleInspection from './pages/VehicleInspection';
+import DrivingAssessment from './pages/DrivingAssessment';
+import MonthlyRental from './pages/MonthlyRental';
+import DriversOvertime from './pages/DriversOvertime';
 
 interface DashboardProps {
     user: any;
@@ -1371,6 +1376,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user, token, onLogout }) => {
                 <Route path="/incident-report" element={<IncidentReport />} />
                 <Route path="/user-management" element={<UserManagement token={token} />} />
                 <Route path="/settings/client-name" element={<ClientNameWrapper />} />
+                <Route path="/driver-services/vehicle-registration" element={<VehicleRegistration />} />
+                <Route path="/driver-services/vehicle-inspection" element={<VehicleInspection />} />
+                <Route path="/driver-services/driving-assessment" element={<DrivingAssessment />} />
+                <Route path="/driver-services/monthly-rental" element={<MonthlyRental />} />
+                <Route path="/driver-services/drivers-overtime" element={<DriversOvertime />} />
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
