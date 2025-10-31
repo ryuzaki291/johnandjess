@@ -130,7 +130,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                                 `}
                             >
                                 <span className="text-xl mr-3">🚛</span>
-                                <span className="font-medium flex-1">DRIVER SERVICES</span>
+                                <span className="font-medium flex-1">SERVICES</span>
                                 <svg
                                     className={`w-4 h-4 transition-transform duration-200 ${
                                         driverServicesOpen ? 'rotate-180' : ''
